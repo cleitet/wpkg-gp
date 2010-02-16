@@ -1,0 +1,16 @@
+CLASS MACHINE
+CATEGORY "WPKG"
+	POLICY "WPKG Software installation"
+		CLIENTEXT {A9B8D792-F454-11DE-BA92-FDCF56D89593}
+		KEYNAME "Software\Policies\WPKG_gp"
+		PART "WPKG file path"	EDITTEXT
+			VALUENAME "WpkgPath"
+		END PART
+		PART "WPKG Parameters" EDITTEXT
+			ValueName "WpkgParameters"
+		END PART
+		PART "WPKG-gp Verbosity" EDITTEXT
+			ValueName "WpkgVerbosity"
+		END PART
+	END POLICY
+END CATEGORY

@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual C++ Express 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WPKG-gp", "WPKG-gp\WPKG-gp.vcproj", "{1D91F487-DFAC-403D-9997-19B3030B9A3D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WPKG-gp-client", "WPKG-gp-client\WPKG-gp-client.vcproj", "{F5DEA072-9B83-4A98-9998-5018283A55B2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Installer", "Installer\Installer.vcproj", "{9E4E145E-30A4-4988-98D2-8AC7B521008E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F5DEA072-9B83-4A98-9998-5018283A55B2} = {F5DEA072-9B83-4A98-9998-5018283A55B2}
+		{1D91F487-DFAC-403D-9997-19B3030B9A3D} = {1D91F487-DFAC-403D-9997-19B3030B9A3D}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1D91F487-DFAC-403D-9997-19B3030B9A3D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1D91F487-DFAC-403D-9997-19B3030B9A3D}.Debug|Win32.Build.0 = Debug|Win32
+		{1D91F487-DFAC-403D-9997-19B3030B9A3D}.Release|Win32.ActiveCfg = Release|Win32
+		{1D91F487-DFAC-403D-9997-19B3030B9A3D}.Release|Win32.Build.0 = Release|Win32
+		{F5DEA072-9B83-4A98-9998-5018283A55B2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F5DEA072-9B83-4A98-9998-5018283A55B2}.Debug|Win32.Build.0 = Debug|Win32
+		{F5DEA072-9B83-4A98-9998-5018283A55B2}.Release|Win32.ActiveCfg = Release|Win32
+		{F5DEA072-9B83-4A98-9998-5018283A55B2}.Release|Win32.Build.0 = Release|Win32
+		{9E4E145E-30A4-4988-98D2-8AC7B521008E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9E4E145E-30A4-4988-98D2-8AC7B521008E}.Debug|Win32.Build.0 = Debug|Win32
+		{9E4E145E-30A4-4988-98D2-8AC7B521008E}.Release|Win32.ActiveCfg = Release|Win32
+		{9E4E145E-30A4-4988-98D2-8AC7B521008E}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
