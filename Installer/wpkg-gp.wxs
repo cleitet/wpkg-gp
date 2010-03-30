@@ -1,16 +1,26 @@
 <?xml version='1.0' encoding='Windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
 
-  <Product Name='WPKG-gp 0.1b' Id='7adc6457-8383-449a-b517-5691137e90ca'
+  <Product Name='WPKG-gp 0.2' Id='7adc6457-8383-449a-b517-5691137e90ca'
            UpgradeCode='5d49d975-2f3e-4a47-97f5-3cb759de60b1'
-           Language='1033' Codepage='1252' Version='0.1.0'
+           Language='1033' Codepage='1252' Version='0.2.0'
            Manufacturer='The WPKG-gp team'>
 
-    <Package Id='*' Keywords='Installer' Description="WPKG-gp 0.1b Installer"
+    <Package Id='*' Keywords='Installer' Description="WPKG-gp 0.2 Installer"
              Comments='http://code.google.com/p/wpkg-gp/'
-             Manufacturer='Acme Ltd.'
+             Manufacturer='The WPKG-gp team'
              InstallerVersion='300' Languages='1033' Compressed='yes'
              SummaryCodepage='1252' />
+    
+    <Upgrade Id='5d49d975-2f3e-4a47-97f5-3cb759de60b1'>
+      <UpgradeVersion OnlyDetect='no' Property='OLDERVERSIONBEINGUPGRADED'
+                      Minimum='0.1.0' IncludeMinimum='yes'
+                      Maximum='0.2.0' IncludeMaximum='no' />
+    </Upgrade>
+
+    <InstallExecuteSequence>
+      <RemoveExistingProducts After="InstallInitialize"/>
+    </InstallExecuteSequence>
 
     <Condition Message="You need to be an administrator to install this product.">
       Privileged
