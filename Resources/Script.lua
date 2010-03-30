@@ -41,7 +41,6 @@ LOG_LEVEL_VERBOSE = 1
 LOG_LEVEL_DEBUG   = 2
 
 
-CSCRIPT="cscript //nologo"
 WPKGCOMMAND = ""
 G_LOG_LEVEL = 1
 
@@ -98,10 +97,10 @@ function Initialize ()
 	-- Check WpkgParameters, don't have to be set
 	if (type(WpkgParameters) ~= "string" or WpkgParameters == "") then
 		Log(LOG_TYPE_LOG, LOG_LEVEL_DEBUG, "Group Policy setting WpkgParameters is not set, ignoring")
-		WPKGCOMMAND = CSCRIPT .. " " .. WpkgPath
+		WPKGCOMMAND = WpkgPath
 	else
 		Log(LOG_TYPE_LOG, LOG_LEVEL_DEBUG, "Group Policy setting WpkgParameters set to: " .. WpkgParameters)
-		WPKGCOMMAND = CSCRIPT .. " " .. WpkgPath .. " " .. WpkgParameters
+		WPKGCOMMAND = WpkgPath .. " " .. WpkgParameters
 	end
 	Log(LOG_TYPE_LOG, LOG_LEVEL_DEBUG, "Setting WpkgCommand to: " .. WPKGCOMMAND)
 end
