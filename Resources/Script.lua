@@ -67,6 +67,9 @@ function Log(LogType, LogLevel, String)
 	else
 		-- Show messages prefixed by level:
 		print("Log Type " .. LogType .. " and Log Level " .. LogLevel  .. ": " .. String)
+		if LogLevel <= G_LOG_LEVEL and LogType ~= LOG_TYPE_PRINT then
+			WriteLog(LogType, String)
+		end
 	end
 end
 
@@ -80,7 +83,7 @@ function Initialize ()
 	if (type(WpkgVerbosity) ~= "string" or WpkgVerbosity == "") then
 		Log(LOG_TYPE_WARNING, LOG_LEVEL_DEBUG, "Group Policy setting WpkgVerbosity is not set, setting Log level to 1")
 	else
-		G_LOGLEVEL = tonumber(WpkgVerbosity)
+		G_LOG_LEVEL = tonumber(WpkgVerbosity)
 		Log(LOG_TYPE_LOG, LOG_LEVEL_DEBUG, "Group Policy setting WpkgVerbosity is set to: " .. WpkgVerbosity)
 	end
 
