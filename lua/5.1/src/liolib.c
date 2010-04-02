@@ -101,17 +101,23 @@ static int io_noclose (lua_State *L) {
   return 2;
 }
 
-
 /*
 ** function to close 'popen' files
 */
 static int io_pclose (lua_State *L) {
   FILE **p = tofilep(L);
   int ok = lua_pclose(L, *p);
+  int en = errno;
   *p = NULL;
-  return pushresult(L, ok, NULL);
+  if (ok == -1){
+	  lua_pushnil(L);
+	  lua_pushfstring(L, "%s", strerror(en));
+	  lua_pushinteger(L, en);
+	  return 3;
+  }
+  lua_pushinteger(L, ok);
+  return 1;
 }
-
 
 /*
 ** function to close regular files
