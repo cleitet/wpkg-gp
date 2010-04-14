@@ -152,6 +152,34 @@ LPSTR wchar2char(LPWSTR wString)
 	return cString;
 }
 
+//Reboots the computer
+int luaReboot(lua_State *L)
+{
+	int i = InitiateSystemShutdownEx(
+		NULL, NULL, 0, TRUE, TRUE, 
+		SHTDN_REASON_MAJOR_APPLICATION | 
+		SHTDN_REASON_MINOR_INSTALLATION | 
+		SHTDN_REASON_FLAG_PLANNED
+		);
+	if (i == 0){
+		int error = GetLastError();
+		LPWSTR lpErrorString;
+		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+			0, error, NULL, (LPWSTR)&lpErrorString, 0, NULL);
+
+		LPSTR ErrorString = wchar2char(lpErrorString);
+		LocalFree(lpErrorString);
+
+		lua_pushboolean(L, 1);
+		lua_pushstring(L, ErrorString);
+		
+		return 2;
+	} else {
+		lua_pushboolean(L, 0);
+		return 1;
+	}
+}
+
 // runLua: Initializes global variables for Lua, and runs it
 // cCallingMetod is a parameter to tell Lua script weither it's called from gpe
 //or from a testing script (can be either "script" or "gpe")
@@ -163,7 +191,7 @@ int runLua(LPCSTR cCallingMethod, PFNSTATUSMESSAGECALLBACK pStatusCallback) {
 	LPWSTR wLuaScript = GetHKLMStringValue(L"SOFTWARE\\WPKG-gp", L"LuaScript");
 	if (wLuaScript == NULL)
 	{
-		//error: could not find lua scritp
+		//error: could not find lua script
 		return(1);
 	}
 
@@ -192,6 +220,8 @@ int runLua(LPCSTR cCallingMethod, PFNSTATUSMESSAGECALLBACK pStatusCallback) {
 	lua_setglobal(L,  "WriteStatus");
 	lua_pushcfunction(L, luaWriteLog);
 	lua_setglobal(L,  "WriteLog");
+	lua_pushcfunction(L, luaReboot);
+	lua_setglobal(L, "Reboot");
 
 	//Adding settings
 	lua_pushstring(L, cWpkgPath);

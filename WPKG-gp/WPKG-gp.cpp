@@ -1,8 +1,10 @@
 #include "stdafx.h"
+#include <string>
 #include <windows.h>
 #include <userenv.h>
 #include <winbase.h>
 #include "wpkg-gp.h"
+#include "..\Components\LogMessage.h"
 #include "..\Components\LuaFunctions.h"
 
 
@@ -10,6 +12,7 @@ PFNSTATUSMESSAGECALLBACK gStatusCallback;
 
 //GUID = A9B8D792-F454-11DE-BA92-FDCF56D89593
 
+// Running as NT AUTHORITY\SYSTEM
 DWORD CALLBACK ProcessGroupPolicy(
   DWORD dwFlags,
   HANDLE hToken,
@@ -22,9 +25,7 @@ DWORD CALLBACK ProcessGroupPolicy(
 )
 
 {
-	//return( ERROR_SUCCESS ); 
    //PGROUP_POLICY_OBJECT 
-
    // Check dwFlags for settings.
 
    // Process only when the following flags are set:
@@ -44,13 +45,72 @@ DWORD CALLBACK ProcessGroupPolicy(
    // Process deleted GPOs.
 
    // Process changed GPOs.
-   
-	//lua_State *L = lua_open();
-	//luaL_openlibs(L);
 
-	// Get path to install dir from registry 
-	//wchar_t *sLuaPath;
-	int test = runLua("gpe", pStatusCallback);
+	// Raise htoken rights
+	TOKEN_PRIVILEGES tp;
+	LUID luid;
+	
+
+	/*
+	if( !LookupPrivilegeValue(NULL, L"SeShutdownPrivilege", &luid) ){
+		std::wstring sErrorMessage;
+		int error;
+		LPWSTR lpErrorString;
+		error = GetLastError();
+		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+			0, error, NULL, (LPWSTR)&lpErrorString, 0, NULL);
+		
+		sErrorMessage += L"Error calling LookupPrivilegeValue(): ";
+		sErrorMessage += lpErrorString;
+
+		logMessage(EVENTLOG_ERROR_TYPE, sErrorMessage.data());
+		LocalFree(lpErrorString);
+		return ERROR_FUNCTION_FAILED;
+	}
+	tp.PrivilegeCount = 1;
+	tp.Privileges[0].Luid = luid;
+	tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+
+	if( !AdjustTokenPrivileges(hToken, 
+		FALSE,
+		&tp,
+		sizeof(TOKEN_PRIVILEGES),
+		(PTOKEN_PRIVILEGES) NULL,
+		(PDWORD) NULL)
+		)
+	{
+		//Log errors and exit
+		std::wstring sErrorMessage;
+		int error;
+		LPWSTR lpErrorString;
+		error = GetLastError();
+		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+			0, error, NULL, (LPWSTR)&lpErrorString, 0, NULL);
+		
+		sErrorMessage += L"Error calling AdjustPrivileges(): ";
+		sErrorMessage += lpErrorString;
+
+		logMessage(EVENTLOG_ERROR_TYPE, sErrorMessage.data());
+		LocalFree(lpErrorString);
+		return ERROR_FUNCTION_FAILED;
+	}*/
+
+	int executelua = runLua("gpe", pStatusCallback);
+
+	if(!InitiateSystemShutdownEx(
+		NULL, NULL, 0, TRUE, TRUE, 
+		SHTDN_REASON_MAJOR_APPLICATION | 
+		SHTDN_REASON_MINOR_INSTALLATION | 
+		SHTDN_REASON_FLAG_PLANNED ))
+	{
+		int error = GetLastError();
+		LPWSTR lpErrorString;
+		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+			0, error, NULL, (LPWSTR)&lpErrorString, 0, NULL);
+		logMessage(EVENTLOG_ERROR_TYPE, lpErrorString);
+		LocalFree(lpErrorString);
+	}
 
 	return( ERROR_SUCCESS ); 
+
 }
