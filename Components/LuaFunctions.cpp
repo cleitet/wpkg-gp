@@ -13,23 +13,51 @@ extern "C"
 
 static PFNSTATUSMESSAGECALLBACK gStatusCallback;
 
+//Performs conversion from LPCSTR to LPWSTR - if any failure occurs returns NULL
+//When not needed returned string MUST be freed with HeapFree function only
+LPWSTR convertToWideString (LPCSTR pszStringIn)
+{
+	LPWSTR pszOut = NULL;
+	size_t uiSize = 0;
+	size_t uiConvertedChars = 0;
+	errno_t iRetVal = -1;
+
+	if (pszStringIn == NULL)
+		return pszOut;
+
+	uiSize = strlen(pszStringIn) + 1;
+	
+	pszOut = (LPWSTR)HeapAlloc(GetProcessHeap(), HEAP_GENERATE_EXCEPTIONS | HEAP_ZERO_MEMORY, uiSize * sizeof (WCHAR));
+	if (pszOut != NULL)
+	{
+		iRetVal = mbstowcs_s(&uiConvertedChars, pszOut, uiSize, pszStringIn, _TRUNCATE);
+		if (iRetVal != 0)
+		{
+			//TODO
+			//process error here
+		}
+	}
+	
+	return pszOut;
+}
 //Provides the ability to write to the Winlogon status window at boot
 //Returns return value of the global StatusCallback function or
 //NULL if gStatusCallback is NULL.
 int luaWriteStatus(lua_State *L)
 {
+	LPWSTR pszWcstring = NULL;
+	DWORD ulRet;
+
+	if (gStatusCallback == NULL) return 0;
 
 	LPCSTR orig = luaL_checkstring(L, 1);
-
-	// Convert to a wchar_t*
-    size_t origsize = strlen(orig) + 1;
-    const size_t newsize = 100;
-    size_t convertedChars = 0;
-    wchar_t wcstring[newsize];
-    mbstowcs_s(&convertedChars, wcstring, origsize, orig, _TRUNCATE);
-
-	if (gStatusCallback == NULL) return NULL;
-    else return gStatusCallback(FALSE, wcstring);
+	pszWcstring = convertToWideString (orig);
+	if (pszWcstring != NULL)
+	{
+		ulRet = gStatusCallback(FALSE, pszWcstring);
+		HeapFree (GetProcessHeap(), 0, pszWcstring); 
+	}
+	return (int)ulRet;
 }
 
 int luaSetLogFlags(lua_State *L)
@@ -51,21 +79,19 @@ int luaSetLogFlags(lua_State *L)
 
 int luaWriteLog(lua_State *L)
 {	
+	LPWSTR pszWcstring = NULL;
+	
 	// Log flag (call SetLogFlags to get)
     int wFlag = luaL_checkinteger(L, 1);
 	// String to log
-	const char *orig = luaL_checkstring(L, 2);
+	LPCSTR orig = luaL_checkstring(L, 2);
 
-	// Convert to a wchar_t*
-    size_t origsize = strlen(orig) + 1;
-    const size_t newsize = 100;
-    size_t convertedChars = 0;
-    wchar_t wcstring[newsize];
-    mbstowcs_s(&convertedChars, wcstring, origsize, orig, _TRUNCATE);
-    //wcscat_s(wcstring, L" (wchar_t *)");
-
-	
-	logMessage(wFlag, wcstring);
+	pszWcstring = convertToWideString (orig);
+	if (pszWcstring != NULL)
+	{
+		logMessage(wFlag, pszWcstring);
+		HeapFree (GetProcessHeap(), 0, pszWcstring); 
+	}
 	return 0;
 }
 
