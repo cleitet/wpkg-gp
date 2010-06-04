@@ -23,6 +23,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets=".\installermacros.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -90,6 +91,7 @@
 			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets=".\installermacros.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -158,6 +160,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets=".\installermacros.vsprops"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
@@ -228,6 +231,7 @@
 			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets=".\installermacros.vsprops"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
@@ -328,8 +332,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Running light"
-						CommandLine="light.exe -dSolutionDir=&quot;$(SolutionDir)\&quot; -dPlatformName=$(PlatformName) -dConfigurationName=$(ConfigurationName) -out &quot;$(SolutionDir)$(PlatformName)\$(ConfigurationName)\$(InputName)_$(ConfigurationName)_$(PlatformName)&quot; -ext WixUIExtension $(InputFileName)&#x0D;&#x0A;"
-						Outputs="$(InputName)_$(ConfigurationName)_$(PlatformName).msi"
+						CommandLine="light.exe -dSolutionDir=&quot;$(SolutionDir)\&quot; -dReleaseVersion=$(ReleaseVersion) -dPlatformName=$(PlatformName) -dConfigurationName=$(ConfigurationName) -out &quot;$(SolutionDir)$(PlatformName)\$(ConfigurationName)\$(InputName)_$(ConfigurationName)_$(PlatformName)&quot; -ext WixUIExtension $(InputFileName)&#x0D;&#x0A;"
+						Outputs="$(InputName)_$(ConfigurationName)-$(ReleaseVersion)_$(PlatformName).msi"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -338,8 +342,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Running light"
-						CommandLine="light.exe -dSolutionDir=&quot;$(SolutionDir)\&quot; -dPlatformName=$(PlatformName) -dConfigurationName=$(ConfigurationName) -out &quot;$(SolutionDir)$(PlatformName)\$(ConfigurationName)\$(InputName)_$(ConfigurationName)_$(PlatformName)&quot; -ext WixUIExtension $(InputFileName)&#x0D;&#x0A;"
-						Outputs="$(InputName)_$(ConfigurationName)_$(PlatformName).msi"
+						CommandLine="light.exe -dSolutionDir=&quot;$(SolutionDir)\&quot; -dReleaseVersion=$(ReleaseVersion) -dPlatformName=$(PlatformName) -dConfigurationName=$(ConfigurationName) -out &quot;$(SolutionDir)$(PlatformName)\$(ConfigurationName)\$(InputName)_$(ConfigurationName)_$(PlatformName)&quot; -ext WixUIExtension $(InputFileName)&#x0D;&#x0A;"
+						Outputs="$(InputName)_$(ConfigurationName)-$(ReleaseVersion)_$(PlatformName).msi"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -348,8 +352,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Running light"
-						CommandLine="light.exe -dSolutionDir=&quot;$(SolutionDir)\&quot; -dPlatformName=$(PlatformName) -dConfigurationName=$(ConfigurationName) -out &quot;$(SolutionDir)$(PlatformName)\$(ConfigurationName)\$(InputName)_$(PlatformName)&quot; -ext WixUIExtension $(InputFileName)&#x0D;&#x0A;"
-						Outputs="$(InputName)_$(PlatformName).msi"
+						CommandLine="light.exe -dSolutionDir=&quot;$(SolutionDir)\&quot; -dReleaseVersion=$(ReleaseVersion) -dPlatformName=$(PlatformName) -dConfigurationName=$(ConfigurationName) -out &quot;$(SolutionDir)$(PlatformName)\$(ConfigurationName)\$(InputName)_$(PlatformName)&quot; -ext WixUIExtension $(InputFileName)&#x0D;&#x0A;"
+						Outputs="$(InputName)-$(ReleaseVersion)_$(PlatformName).msi"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -358,8 +362,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Running light"
-						CommandLine="light.exe -dSolutionDir=&quot;$(SolutionDir)\&quot; -dPlatformName=$(PlatformName) -dConfigurationName=$(ConfigurationName) -out &quot;$(SolutionDir)$(PlatformName)\$(ConfigurationName)\$(InputName)_$(PlatformName)&quot; -ext WixUIExtension $(InputFileName)&#x0D;&#x0A;"
-						Outputs="$(InputName)_$(PlatformName).msi"
+						CommandLine="light.exe -dSolutionDir=&quot;$(SolutionDir)\&quot; -dReleaseVersion=$(ReleaseVersion) -dPlatformName=$(PlatformName) -dConfigurationName=$(ConfigurationName) -out &quot;$(SolutionDir)$(PlatformName)\$(ConfigurationName)\$(InputName)_$(PlatformName)&quot; -ext WixUIExtension $(InputFileName)&#x0D;&#x0A;"
+						Outputs="$(InputName)-$(ReleaseVersion)_$(PlatformName).msi"
 					/>
 				</FileConfiguration>
 			</File>
@@ -372,7 +376,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Running candle"
-						CommandLine="candle.exe -arch x86 -dSolutionDir=&quot;$(SolutionDir)\&quot; -dPlatformName=$(PlatformName) -dConfigurationName=$(ConfigurationName) $(InputFileName)&#x0D;&#x0A;"
+						CommandLine="candle.exe -arch x86 -dSolutionDir=&quot;$(SolutionDir)\&quot; -dReleaseVersion=$(ReleaseVersion) -dPlatformName=$(PlatformName) -dConfigurationName=$(ConfigurationName) $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName).wixobj"
 					/>
 				</FileConfiguration>
@@ -382,7 +386,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Running candle"
-						CommandLine="candle.exe -arch x64 -dSolutionDir=&quot;$(SolutionDir)\&quot; -dPlatformName=$(PlatformName) -dConfigurationName=$(ConfigurationName) $(InputFileName)&#x0D;&#x0A;"
+						CommandLine="candle.exe -arch x64 -dSolutionDir=&quot;$(SolutionDir)\&quot; -dReleaseVersion=$(ReleaseVersion) -dPlatformName=$(PlatformName) -dConfigurationName=$(ConfigurationName) $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName).wixobj"
 					/>
 				</FileConfiguration>
@@ -392,7 +396,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Running candle"
-						CommandLine="candle.exe  -arch x86 -dSolutionDir=&quot;$(SolutionDir)\&quot; -dPlatformName=$(PlatformName) -dConfigurationName=$(ConfigurationName) $(InputFileName)&#x0D;&#x0A;"
+						CommandLine="candle.exe  -arch x86 -dSolutionDir=&quot;$(SolutionDir)\&quot; -dReleaseVersion=$(ReleaseVersion) -dPlatformName=$(PlatformName) -dConfigurationName=$(ConfigurationName) $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName).wixobj"
 					/>
 				</FileConfiguration>
@@ -402,7 +406,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Running candle"
-						CommandLine="candle.exe -arch x64 -dSolutionDir=&quot;$(SolutionDir)\&quot; -dPlatformName=$(PlatformName) -dConfigurationName=$(ConfigurationName) $(InputFileName)&#x0D;&#x0A;"
+						CommandLine="candle.exe -arch x64 -dSolutionDir=&quot;$(SolutionDir)\&quot;  -dReleaseVersion=$(ReleaseVersion) -dPlatformName=$(PlatformName) -dConfigurationName=$(ConfigurationName) $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName).wixobj"
 					/>
 				</FileConfiguration>

@@ -12,12 +12,12 @@
     <?define var.LocalProgramFilesFolder=$(env.CommonProgramFiles) ?>
   <?endif ?>    
   
-  <Product Name='WPKG-gp 0.2' Id='7adc6457-8383-449a-b517-5691137e90ca'
+  <Product Name='WPKG-gp $(var.ReleaseVersion)' Id='{A70E99ED-87C6-4142-88A7-8491459494A2}'
            UpgradeCode='5d49d975-2f3e-4a47-97f5-3cb759de60b1'
-           Language='1033' Codepage='1252' Version='0.2.0'
+           Language='1033' Codepage='1252' Version='$(var.ReleaseVersion).0'
            Manufacturer='The WPKG-gp team'>
 
-    <Package Id='*' Keywords='Installer' Description="WPKG-gp 0.2 Installer"
+    <Package Id='*' Keywords='Installer' Description="WPKG-gp $(var.ReleaseVersion) Installer"
              Comments='http://code.google.com/p/wpkg-gp/'
              Manufacturer='The WPKG-gp team'
              InstallerVersion='300' Languages='1033' Compressed='yes'
@@ -26,7 +26,7 @@
     <Upgrade Id='5d49d975-2f3e-4a47-97f5-3cb759de60b1'>
       <UpgradeVersion OnlyDetect='no' Property='OLDERVERSIONBEINGUPGRADED'
                       Minimum='0.1.0' IncludeMinimum='yes'
-                      Maximum='0.2.0' IncludeMaximum='no' />
+                      Maximum='$(var.ReleaseVersion).0' IncludeMaximum='no' />
     </Upgrade>
 
     <InstallExecuteSequence>
@@ -129,7 +129,7 @@
       <?endif?>
     </DirectoryRef>
     
-    <Feature Id='Complete' Title='WPKG-gp 2.0' Level='1' Description='Complete installation'
+    <Feature Id='Complete' Title='WPKG-gp $(var.ReleaseVersion)' Level='1' Description='Complete installation'
              Display='expand' ConfigurableDirectory='INSTALLDIR'>
       <Feature Id='GPExtentionFeature' Title='Group Policy Extention' Description='Install and register the Group Policy Extention DLL. This action installs the needed C++ Merge module as well.' Level='1'>
         <ComponentRef Id='GPExtention' />
