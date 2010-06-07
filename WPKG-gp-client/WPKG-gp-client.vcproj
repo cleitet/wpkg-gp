@@ -611,7 +611,9 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
+						Description="Compiling mc file"
 						CommandLine="mc.exe &quot;$(InputDir)$(InputFileName)&quot;&#x0D;&#x0A;"
+						Outputs="$(InputName).rc"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
