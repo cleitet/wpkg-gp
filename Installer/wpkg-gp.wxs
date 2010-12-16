@@ -1,0 +1,180 @@
+<?xml version='1.0' encoding='Windows-1252'?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
+  <?if $(sys.BUILDARCH) = "x64" ?>
+    <?define var.TargetProgramFilesFolder="ProgramFiles64Folder" ?>
+  <?else ?>
+    <?define var.TargetProgramFilesFolder="ProgramFilesFolder" ?>    
+  <?endif ?>
+
+  <?if $(env.PROCESSOR_ARCHITECTURE) = "AMD64" ?>
+    <?define var.LocalProgramFilesFolder=$(env.CommonProgramFiles(x86)) ?>
+  <?else ?>
+    <?define var.LocalProgramFilesFolder=$(env.CommonProgramFiles) ?>
+  <?endif ?>    
+  
+  <Product Name='WPKG-gp $(env.ReleaseVersion)' Id='$(env.ProductIDGUID)'
+           UpgradeCode='5d49d975-2f3e-4a47-97f5-3cb759de60b1'
+           Language='1033' Codepage='1252' Version='$(env.ReleaseVersion).0'
+           Manufacturer='The WPKG-gp team'>
+
+    <Package Id='*' Keywords='Installer' Description="WPKG-gp $(env.ReleaseVersion) Installer"
+             Comments='http://code.google.com/p/wpkg-gp/'
+             Manufacturer='The WPKG-gp team'
+             InstallPrivileges="elevated"
+             InstallerVersion='300' Languages='1033' Compressed='yes'
+             SummaryCodepage='1252' Platform='$(sys.BUILDARCH)'/>
+    
+    <Upgrade Id='5d49d975-2f3e-4a47-97f5-3cb759de60b1'>
+      <UpgradeVersion OnlyDetect='no' Property='OLDERVERSIONBEINGUPGRADED'
+                      Minimum='0.1.0' IncludeMinimum='yes'
+                      Maximum='$(env.ReleaseVersion).0' IncludeMaximum='no' />
+    </Upgrade>
+
+    <Property Id="ALLUSERS">1</Property>
+    
+    <Condition Message="You need to be an administrator to install this product.">
+      Privileged
+    </Condition>
+    
+    <Condition Message='You need a Windows version >= Windows 2000 to install this product.'>
+      VersionNT >= 500
+    </Condition>
+    
+    <Media Id='1' Cabinet='wpkg_gp.cab' EmbedCab='yes' DiskPrompt='CD-ROM #1' />
+    <Property Id='DiskPrompt' Value="WPKG-gp Installation [1]" />
+
+    <Directory Id='TARGETDIR' Name='SourceDir'>
+      <Directory Id='$(var.TargetProgramFilesFolder)' Name='PFiles'>
+        <Directory Id='INSTALLDIR' Name='WPKG-gp'>
+          <Component Id='GPExtention' Guid='9a9ffe56-fe95-48a6-b19d-d7f386c65456'>
+            <!-- GPO Extention and registering -->
+            <File Id='GPEDll' DiskId='1' Name='WPKG-gp.dll' Source='$(var.SolutionDir)$(var.PlatformName)\$(var.ConfigurationName)\WPKG-gp.dll' KeyPath='yes' />
+            <RegistryKey Id='RegisterGPEDllKey' Root='HKLM'
+                      Key='SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\GPExtensions\{A9B8D792-F454-11DE-BA92-FDCF56D89593}'
+                      Action='createAndRemoveOnUninstall' >
+              <RegistryValue Id='RegisterGPEDllDefaultValue'
+                        Action='write' Type='string' Value='WPKG-gp' />
+              <RegistryValue Id='RegisterGPEDllName'
+                        Name='DllName' Action='write' Type='multiString' Value='[INSTALLDIR]WPKG-gp.dll' />
+              <RegistryValue Id='RegisterGPEDllNoBackgroundPolicy'
+                        Name='NoBackgroundPolicy' Action='write' Type='integer' Value='1' />
+              <RegistryValue Id='RegisterGPEDllNoUserPolicy'
+                        Name='NoUserPolicy' Action='write' Type='integer' Value='1' />
+              <!--<RegistryValue Id='RegisterGPEDllNoGPOListChanges'
+                        Name='NoGPOListChanges' Action='write' Type='integer' Value='1' /> -->
+              <RegistryValue Id='RegisterGPEDllProcessGroupPolicy'
+                        Name='ProcessGroupPolicy' Action='write' Type='string' Value='ProcessGroupPolicy' />
+            </RegistryKey>
+          </Component>
+
+          <Component Id='RegisterSoftwareSettings' Guid='51afb602-1e39-4fe0-a1e4-3695a6f061b1'>
+            <RegistryKey Id='SoftwareSettingsKey' Root='HKLM' Key='SOFTWARE\WPKG-gp'
+                         Action='createAndRemoveOnUninstall' />
+            <RegistryValue Id='RegisterInstallPath' Root='HKLM'
+                           Key='SOFTWARE\WPKG-gp'
+                           Name='InstallPath' Action='write' Type='string' Value='[INSTALLDIR]' />
+            <RegistryValue Id='RegisterLuaScript' Root='HKLM'
+                           Key='SOFTWARE\WPKG-gp'
+                           Name='LuaScript' Action='write' Type='string' Value='[INSTALLDIR]Script.lua' />
+          </Component>
+
+          <Component Id='RegisterEventLog' Guid='574f1d98-32e0-4276-a754-3566f747b6f9'>
+            <RegistryKey Id='EventLogKey' Root='HKLM'
+                         Key='System\CurrentControlSet\Services\EventLog\Application\WPKG-gp'
+                         Action='createAndRemoveOnUninstall' />
+            <RegistryValue Id='EventLogKeyValueEventMessageFile' Root='HKLM'
+                           Key='System\CurrentControlSet\Services\EventLog\Application\WPKG-gp'
+                           Name='EventMessageFile' Action='write' Type='string' Value='[INSTALLDIR]WPKG-gp.dll' />
+            <RegistryValue Id='EventLogKeyValueTypesSupported' Root='HKLM'
+                           Key='System\CurrentControlSet\Services\EventLog\Application\WPKG-gp'
+                           Name='TypesSupported' Action='write' Type='integer' Value='7' />
+          </Component>
+          <Component Id='InstallWPKGClient' Guid='63603cb0-f599-4dae-b24e-723545c673cc'>
+            <File Id='WPKGClient' DiskId='1' Name='WPKG-GP-Client.exe' Source='$(var.SolutionDir)$(var.PlatformName)\$(var.ConfigurationName)\Wpkg-GP-Client.exe' KeyPath='yes' />
+          </Component>
+
+          <Component Id='LuaScript' Guid='ad9dd7d8-ec5e-4abc-b865-532d8cccce9d'>
+            <File Id='LuaScriptFile' DiskId='1' Name='Script.lua' Source='$(var.SolutionDir)\Resources\Script.lua' KeyPath='yes' />
+          </Component>         
+
+        </Directory>
+      </Directory>
+      <Directory Id='WindowsFolder' Name='Windows'>
+        <Directory Id='Inf' Name='Inf'>
+          <Component Id='ADMComponent' Guid='60d976f1-9b3e-4a25-a4fb-5af91ad7e7bb'>
+            <File Id='ADMFile' DiskId='1' Name='wpkg-gp.adm' Source='..\Resources\wpkg-gp.adm' KeyPath='yes' />
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <!-- Including Runtime Library -->
+    <DirectoryRef Id="INSTALLDIR">
+      <Directory Id="VCPP2010RedistDirectory" Name="VC++2010Redist">
+        <Component Id="VCPP2010Redist" Guid="98789b31-4b23-4ef4-b267-b87cf2e8f662">
+          <?if $(sys.BUILDARCH) = "x64" ?>
+          <File Id="VCPP2010RedistExe" Source="$(var.SdkDir)\redist\VC\vcredist_x64.exe" KeyPath="yes" Checksum="yes"/>
+          <?else?>
+          <File Id="VCPP2010RedistExe" Source="$(var.SdkDir)\redist\VC\vcredist_x86.exe" KeyPath="yes" Checksum="yes"/>
+          <?endif?>
+        </Component>
+      </Directory>
+    </DirectoryRef>
+    
+    <Feature Id='Complete' Title='WPKG-gp $(env.ReleaseVersion)' Level='1' Description='Complete installation'
+             Display='expand' ConfigurableDirectory='INSTALLDIR'>
+      <Feature Id='GPExtentionFeature' Title='Group Policy Extention' Description='Install and register the Group Policy Extention DLL. This action installs the needed C++ Merge module as well.' Level='1'>
+        <ComponentRef Id='GPExtention' />
+        <ComponentRef Id='RegisterSoftwareSettings' />
+        <ComponentRef Id='RegisterEventLog' />
+        <ComponentRef Id='LuaScript'/>
+        <ComponentRef Id='VCPP2010Redist' />
+      </Feature>
+      <Feature Id='ADMComponentFeature' Title='Administrative Template' Description='Install the Administrative Template for configuring the WPKG-gp GPE' Level='1'>
+        <ComponentRef Id='ADMComponent'/>
+      </Feature>
+      <Feature Id='WPKGGPClientFeature' Level='1' Title='WPKG-GP-Client' Description='Install a debugging tool'>
+        <ComponentRef Id='InstallWPKGClient'/>
+        <ComponentRef Id='RegisterSoftwareSettings' />
+        <ComponentRef Id='RegisterEventLog' />
+        <ComponentRef Id='LuaScript'/>
+        <ComponentRef Id='VCPP2010Redist' />
+      </Feature>
+      </Feature>
+
+    <!-- Check to see if Visual C++ Redist 2010 is installed -->
+    <Property Id='VCPP2010ISINSTALLED'>
+      <RegistrySearch Id='VCPP2010IsInstalledRegSearch' Root='HKLM'
+                      Key='SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{196BB40D-1578-3D01-B289-BEFC77A11A1E}'
+                      Type='raw' Name='DisplayVersion'/>
+    </Property>
+
+    <CustomAction Id="InstallVCPP2010" FileKey="VCPP2010RedistExe"
+                  ExeCommand="/passive" Execute="deferred"
+                  Impersonate="no" Return="asyncNoWait" />
+    
+    <CustomAction Id="InstallVCPP2010Silent" FileKey="VCPP2010RedistExe"
+                  ExeCommand="/q" Execute="deferred"
+                  Impersonate="no" Return="asyncNoWait" />
+
+    <InstallExecuteSequence>
+      <RemoveExistingProducts After="InstallInitialize"><![CDATA[OLDERVERSIONBEINGUPGRADED]]></RemoveExistingProducts>
+      <Custom Action="InstallVCPP2010" After="InstallFiles">
+        <!-- Execute only if component is selected for installation, and UILevel = 2 and skip if already installed -->
+        <![CDATA[ ($VCPP2010Redist > 1) AND (UILevel > 2) AND NOT VCPP2010ISINSTALLED]]>
+      </Custom>
+      <Custom Action="InstallVCPP2010Silent" After="InstallFiles">
+        <!-- Execute only if component is selected for installation, and UILevel = 2 and skip if already installed -->
+        <![CDATA[ ($VCPP2010Redist > 1) AND (UILevel = 2) AND NOT VCPP2010ISINSTALLED]]>
+      </Custom>
+    </InstallExecuteSequence>
+    
+    <UIRef Id="WixUI_Mondo" />
+    <UI>
+      <ProgressText Action="InstallVCPP2010">Launching Visual C++ 2010 Redistributable installer</ProgressText>
+    </UI>
+    
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+
+  </Product>
+</Wix>

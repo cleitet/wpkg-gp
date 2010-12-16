@@ -1,0 +1,43 @@
+CLASS MACHINE
+CATEGORY "WPKG"
+	POLICY "WPKG Software installation"
+		CLIENTEXT {A9B8D792-F454-11DE-BA92-FDCF56D89593}
+		KEYNAME "Software\Policies\WPKG_gp"
+		EXPLAIN !!PolHelp
+
+		PART !!WpkgPathTip1 TEXT
+		END PART
+		PART !!WpkgPathTip2 TEXT
+		END PART
+		PART "WPKG command path" EDITTEXT
+			VALUENAME "WpkgPath"
+		END PART
+
+		PART !!WpkgParametersTip1 TEXT
+		END PART
+		PART !!WpkgParametersTip2 TEXT
+		END PART
+		PART !!WpkgParametersTip3 TEXT
+		END PART
+		PART "WPKG Parameters" EDITTEXT DEFAULT "/synchronize /sendStatus /nonotify"
+			ValueName "WpkgParameters"
+		END PART
+
+		PART !!WpkgVerbosityTip1 TEXT
+		END PART
+		PART "WPKG-gp Verbosity" NUMERIC DEFAULT 0 MIN 0 MAX 2 TXTCONVERT
+			ValueName "WpkgVerbosity"
+		END PART
+	END POLICY
+END CATEGORY
+
+[Strings]
+PolHelp="Configures settings for WPKG-GP, a utility for running WPKG as a group policy. See http://wpkg-gp.googlecode.com/ for more info."
+WpkgPathTip1="The path to your wpkg.js or cmd/bat script for starting wpkg."
+WpkgPathTip2="If you give the path to wpkg, be sure to prefix it with 'cscript //nologo'"
+
+WpkgParametersTip1="Eventual parameters to wpkg, if you are call a cmd script, they"
+WpkgParametersTip2="would be in your cmd file, and this field should be empty."
+WpkgParametersTip3="If you call wpkg.js, you need '/synchronize /sendStatus /nonotify' here."
+
+WpkgVerbosityTip1="A value between 0 and 2, indicating how chatty wpkg-gp should be"

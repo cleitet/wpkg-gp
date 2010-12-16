@@ -1,0 +1,3 @@
+LIBRARY WPKG-gp
+EXPORTS
+	ProcessGroupPolicy

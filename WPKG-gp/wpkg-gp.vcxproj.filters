@@ -1,0 +1,240 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="LogMessage">
+      <UniqueIdentifier>{25645617-144a-4125-8b24-55c3f782d366}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lua Source">
+      <UniqueIdentifier>{564a4ed2-9991-4637-8ae6-433531a9ff2b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Components\LuaFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WPKG-gp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Components\LogMessage.h">
+      <Filter>LogMessage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\lapi.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\lauxlib.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\lcode.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\ldebug.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\ldo.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\lfunc.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\lgc.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\llex.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\llimits.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\lmem.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\lobject.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\lopcodes.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\lparser.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\lstate.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\lstring.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\ltable.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\ltm.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\lua.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\luaconf.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\lualib.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\lundump.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\lvm.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lua\5.1\src\lzio.h">
+      <Filter>Lua Source</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\Components\MessageFile.rc">
+      <Filter>LogMessage</Filter>
+    </ResourceCompile>
+    <ResourceCompile Include="wpkg-gp.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Components\LogMessage.cpp">
+      <Filter>LogMessage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Components\LuaFunctions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WPKG-gp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\lapi.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\lauxlib.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\lbaselib.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\lcode.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\ldblib.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\ldebug.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\ldo.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\ldump.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\lfunc.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\lgc.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\linit.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\liolib.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\llex.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\lmathlib.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\lmem.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\loadlib.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\lobject.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\lopcodes.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\loslib.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\lparser.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\lstate.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\lstring.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\lstrlib.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\ltable.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\ltablib.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\ltm.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\luac.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\lundump.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\lvm.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\lzio.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lua\5.1\src\print.c">
+      <Filter>Lua Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Export.def">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\Resources\wpkg-gp.adm">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\Components\MessageFile.mc">
+      <Filter>LogMessage</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\Resources\Script.lua">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>
