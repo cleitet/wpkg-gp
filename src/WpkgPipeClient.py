@@ -17,7 +17,7 @@ import sys, os, traceback
 
 verbose = 0
     
-def runClient(server,msg):
+def runClient(server,msg,debug=False):
     pipeHandle = CreateFile("\\\\%s\\pipe\\WPKG" % server, GENERIC_READ|GENERIC_WRITE, 0, None, OPEN_EXISTING, 0, None)
     SetNamedPipeHandleState(pipeHandle, PIPE_READMODE_MESSAGE, None, None)
     WriteFile(pipeHandle, msg)
@@ -25,7 +25,10 @@ def runClient(server,msg):
     while 1:
         try:
             (hr, readmsg) = ReadFile(pipeHandle, 512)
-            print (readmsg)
+            if debug:
+                print (readmsg)
+            else: #Strip 3 digit status code
+                print (readmsg[4:])
             sys.stdout.flush()
         except win32api.error as exc:
             if exc.winerror == winerror.ERROR_PIPE_BUSY:

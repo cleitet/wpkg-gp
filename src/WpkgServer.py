@@ -75,7 +75,7 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
             # pipe
             if ok:
 				if self.WPKGExecuter.getStatus() != "OK":
-					msg = self.WPKGExecuter.getStatus()
+					msg = "200 " + self.WPKGExecuter.getStatus()
 					servicemanager.LogErrorMsg(msg)
 					WriteFile(pipeHandle, msg.encode('ascii'))
 				else:	
@@ -84,7 +84,7 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
 					elif d == b"Cancel":
 						self.WPKGExecuter.Cancel(pipeHandle, useWriteFile=True)
 					else:
-						msg = "Unknown command"
+						msg = "203 Unknown command"
 						WriteFile(pipeHandle, msg.encode('ascii'))
                     
                 #msg = ("%s (on thread %d) sent me %s" % (GetNamedPipeHandleState(pipeHandle)[4],tid, d)).encode('ascii')
