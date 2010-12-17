@@ -20,7 +20,7 @@ class WPKGExecuter():
 
     def getStatus(self):
         return self.status
-	
+
     def _ReadRegistrySettings(self):
         try:
             with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"SOFTWARE\Policies\WPKG_GP") as key:
@@ -61,20 +61,24 @@ class WPKGExecuter():
         # Finished software synchronization
         
         #Checking current operation:
-        if re.match("Remove:", line):
+        if re.match("^Remove: Checking status", line):
+            #No action is being performed, only updating internal percentage counter, but do not generate output
             self._operation = "removing"
-            self._package_name, self._pkgnum, self._pkgtot = re.search("'(.*)' \(([0-9]+)/([0-9]+)\)$", line).group(1, 2, 3)
-        elif re.match("Install:", line):
-            self._operation = "installing"
-            self._package_name, self._pkgnum, self._pkgtot = re.search("'(.*)' \(([0-9]+)/([0-9]+)\)$", line).group(1, 2, 3)
-        elif re.match("Performing operation", line):
-            operation, self._package_name, self._package_id = re.search(
-                "\((\w+)\) on '(.+)' \((.*)\)$", line).group(1,2,3)
-            if operation == "upgrade":
-                self._operation == "upgrading"
-        else: #Skip line
+            self._pkgnum, self._pkgtot = re.search("'.*' \(([0-9]+)/([0-9]+)\)$", line).group(1, 2)
             return False
-        return True
+        elif re.match("^Install:", line):
+            #No action is being performed, only updating internal percentage counter, but do not generate output
+            self._operation = "installing"
+            self._pkgnum, self._pkgtot = re.search("'.*' \(([0-9]+)/([0-9]+)\)$", line).group(1, 2)
+            return False
+        elif re.match("^Performing operation", line):
+            #Operation is actually being performed
+            operation, self._package_name, self._package_id = re.search(
+                "^Performing operation \((.+)\) on '(.+)' \((.*)\)$", line).group(1,2,3)
+            #The description of the operation is misleading on this message, except for upgrades
+            if operation == "upgrade":
+                self._operation = "upgrading"
+            return True
     
     def _GetPercent(self):
         #This is quasi-progress, as some packages might be quick, and some slow
@@ -89,6 +93,8 @@ class WPKGExecuter():
             return "0"
     
     def _MakeFormattedLine(self):
+        if not self._Parse():
+            return False
         formattedline = "100 %s %s (%s%%)" % (self._operation.capitalize(), self._package_name, self._GetPercent())
         if formattedline == self._formattedline:
             return False
@@ -107,7 +113,6 @@ class WPKGExecuter():
                     #We are finished for now
                     self._Reset()
                     break
-                self._Parse()
                 #self._MakeFormattedLine() returns false if we are to skip line
                 if not self._MakeFormattedLine():
                     continue
@@ -115,7 +120,7 @@ class WPKGExecuter():
                     #win32file.WriteFile(handle, self.nextline.encode('utf-8')) #For debugging
                     win32file.WriteFile(handle, self._formattedline.encode('utf-8'))
                 else:
-                    handle.write(self._formattedline)
+                    handle.write(self._formattedline + '\n')
         else:
             msg = "201 WPKG is already running"
             if useWriteFile:
