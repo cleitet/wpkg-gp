@@ -89,7 +89,7 @@ class WPKGExecuter():
             return "0"
     
     def _MakeFormattedLine(self):
-        formattedline = "100 %s %s (%s%%)" % (self._operation, self._package_name, self._GetPercent())
+        formattedline = "100 %s %s (%s%%)" % (self._operation.capitalize(), self._package_name, self._GetPercent())
         if formattedline == self._formattedline:
             return False
         else:
