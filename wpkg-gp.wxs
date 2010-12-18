@@ -69,23 +69,24 @@ BuildArch:      The Architecture we are building for, x86 or x64
 			</Component>
 			</Directory>
 		  <Component Id="WPKGClient" Guid="b26d4e48-43ae-4944-bc12-39c16375f89b">   
-			<File Id='WPKGClientServiceManager' DiskId='1' Name='servicemanager.pyd' Source='dist\servicemanager.pyd'/>
-			<File Id='WPKGClientLibrary' DiskId='1' Name='library.zip' Source='dist\library.zip' />
-			<File Id='WPKGClientUnicodeData' DiskId='1' Name='unicodedata.pyd' Source='dist\unicodedata.pyd' />
-			<File Id='WPKGClientPyWinTypes26' DiskId='1' Name='pywintypes26.dll' Source='dist\pywintypes26.dll' />
-			<File Id='WPKGClientWin32Pipe' DiskId='1' Name='win32pipe.pyd' Source='dist\win32pipe.pyd' />
-			<File Id='WPKGClient_Win32SysLoader' DiskId='1' Name='_win32sysloader.pyd' Source='dist\_win32sysloader.pyd' />
-			<File Id='WPKGClientPerfMon' DiskId='1' Name='perfmon.pyd' Source='dist\perfmon.pyd' />
-			<File Id='WPKGClientBz2' DiskId='1' Name='bz2.pyd' Source='dist\bz2.pyd' />
-			<File Id='WPKGClientWin32EvtLog' DiskId='1' Name='win32evtlog.pyd' Source='dist\win32evtlog.pyd' />
-			<File Id='WPKGClientW9Popen' DiskId='1' Name='w9xpopen.exe' Source='dist\w9xpopen.exe' />
-			<File Id='WPKGClientPython26' DiskId='1' Name='python26.dll' Source='dist\python26.dll' />
-			<File Id='WPKGClientWin32File' DiskId='1' Name='win32file.pyd' Source='dist\win32file.pyd' />
+			<File Id='PythonLib_Win32SysLoader' DiskId='1' Name='_win32sysloader.pyd' Source='dist\_win32sysloader.pyd' />
+			<File Id='PythonLibBz2'             DiskId='1' Name='bz2.pyd' Source='dist\bz2.pyd' />
+			<File Id='PythonLibLibrary'         DiskId='1' Name='library.zip' Source='dist\library.zip' />
+			<File Id='PythonLibPerfMon'         DiskId='1' Name='perfmon.pyd' Source='dist\perfmon.pyd' />
+			<File Id='Python26Dll'              DiskId='1' Name='python26.dll' Source='dist\python26.dll' />
+			<File Id='PyWinTypes26Dll'          DiskId='1' Name='pywintypes26.dll' Source='dist\pywintypes26.dll' />
+			<File Id='PythonLibSelect'          DiskId='1' Name='select.pyd' Source='dist\select.pyd' />
+			<File Id='PythonLibServiceManager'  DiskId='1' Name='servicemanager.pyd' Source='dist\servicemanager.pyd'/>
+			<File Id='PythonLibUnicodeData'     DiskId='1' Name='unicodedata.pyd' Source='dist\unicodedata.pyd' />
+			<File Id='W9xPopen'                 DiskId='1' Name='w9xpopen.exe' Source='dist\w9xpopen.exe' />
+			<File Id='PythonLibWin32API'        DiskId='1' Name='win32api.pyd' Source='dist\win32api.pyd' />
+			<File Id='PythonLibWin32Event'      DiskId='1' Name='win32event.pyd' Source='dist\win32event.pyd' />
+			<File Id='PythonLibWin32EvtLog'     DiskId='1' Name='win32evtlog.pyd' Source='dist\win32evtlog.pyd' />
+			<File Id='PythonLibWin32File'       DiskId='1' Name='win32file.pyd' Source='dist\win32file.pyd' />
+			<File Id='PythonLibWin32Pipe'       DiskId='1' Name='win32pipe.pyd' Source='dist\win32pipe.pyd' />
+			<File Id='PythonLibWin32Security'   DiskId='1' Name='win32security.pyd' Source='dist\win32security.pyd' />
+			<File Id='PythonLibWin32Client'     DiskId='1' Name='win32service.pyd' Source='dist\win32service.pyd' />
 			<File Id='WPKGClientWpkgPipeClient' DiskId='1' Name='WpkgPipeClient.exe' Source='dist\WpkgPipeClient.exe' />
-			<File Id='WPKGClientWin32Client' DiskId='1' Name='win32service.pyd' Source='dist\win32service.pyd' />
-			<File Id='WPKGClientWin32Event' DiskId='1' Name='win32event.pyd' Source='dist\win32event.pyd' />
-			<File Id='WPKGClientWin32API' DiskId='1' Name='win32api.pyd' Source='dist\win32api.pyd' />
-			<File Id='WPKGClientSelect' DiskId='1' Name='select.pyd' Source='dist\select.pyd' />
 		  </Component>
 		  <Component Id='WPKGService' Guid='f86f943e-bd60-45aa-a425-e42f1a49ca1b'>
 		    <File Id='WpkgServerExe' DiskId='1' Name='WpkgServer.exe' Source='dist\WpkgServer.exe' KeyPath='yes' />

@@ -74,19 +74,19 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
             # A secure service would handle (and ignore!) errors writing to the
             # pipe
             if ok:
-				if self.WPKGExecuter.getStatus() != "OK":
-					msg = "200 " + self.WPKGExecuter.getStatus()
-					servicemanager.LogErrorMsg(msg)
-					WriteFile(pipeHandle, msg.encode('ascii'))
-				else:	
-					if d == b"Execute":
-						self.WPKGExecuter.Execute(pipeHandle, useWriteFile=True)
-					elif d == b"Cancel":
-						self.WPKGExecuter.Cancel(pipeHandle, useWriteFile=True)
-					else:
-						msg = "203 Unknown command"
-						WriteFile(pipeHandle, msg.encode('ascii'))
-                    
+                if self.WPKGExecuter.getStatus() != "OK":
+                    msg = "200 " + self.WPKGExecuter.getStatus()
+                    servicemanager.LogErrorMsg(msg)
+                    WriteFile(pipeHandle, msg.encode('ascii'))
+                else:	
+                    if d == b"Execute":
+                        self.WPKGExecuter.Execute(pipeHandle, useWriteFile=True)
+                    elif d == b"Cancel":
+                        self.WPKGExecuter.Cancel(pipeHandle, useWriteFile=True)
+                    else:
+                        msg = "203 Unknown command"
+                        WriteFile(pipeHandle, msg.encode('ascii'))
+
                 #msg = ("%s (on thread %d) sent me %s" % (GetNamedPipeHandleState(pipeHandle)[4],tid, d)).encode('ascii')
                 #WriteFile(pipeHandle, msg)
                 

@@ -6,28 +6,68 @@ import sys
 import win32file
 import re
 import _winreg
-
+import reboot
+import servicemanager
+import thread
 
 class WPKGExecuter():
     def __init__(self):
         self.debug = 0
         self.proc = 0
         self.status = "OK"
-        self._ReadRegistrySettings()
-        
+        self._ReadRegistryPolicySettings()
         self.nextline = ""   #Read line
         self._Reset()
+        self.executedfrom = "gpe" #default
+        
+    def setExecutedFrom(self, executedfrom):
+        self.executedfrom = executedfrom #Either "gpe" or "client"
 
     def getStatus(self):
         return self.status
 
-    def _ReadRegistrySettings(self):
+    def _ReadRegistryPolicySettings(self):
         try:
             with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"SOFTWARE\Policies\WPKG_GP") as key:
+                #Path to wpkg.js
                 self.wpkg_executable = _winreg.QueryValueEx(key, "WpkgPath")[0]
+                #Parameters to wpkg.js
                 self.wpkg_parameters = _winreg.QueryValueEx(key, "WpkgParameters")[0]
+                try:
+                    # "force" = force reboot for GP (install at boot) installs
+                    # "ignore" = do not reboot
+                    self.wpkg_gprebootpolicy = _winreg.QueryValueEx(key, "GPRebootPolicy")[0]
+                except (WindowsError):
+                    #set default
+                    self.wpkg_gprebootpolicy = "force"
+                try:
+                    # 999 = unlimited
+                    self.wpkg_maxreboots = _winreg.QueryValueEx(key, "WpkgMaxReboots")[0]
+                except (WindowsError):
+                    #set default
+                    self.wpkg_maxreboots = 10
         except(WindowsError):
             self.status = "Error while reading WPKG policy registry settings"
+        self._ReadRegistryRebootNumber()
+
+    def _ReadRegistryRebootNumber(self):
+        with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"Software\WPKG-gp", 0, _winreg.KEY_ALL_ACCESS) as key:
+            try:
+                self._rebootnumber = _winreg.QueryValueEx(key, "RebootNumber")[0]
+            except (WindowsError):
+                self._rebootnumber = 0
+                _winreg.SetValueEx(key, "RebootNumber", 0, _winreg.REG_DWORD, 0)
+
+    def _IncrementRegistryRebootNumber(self):
+        with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"Software\WPKG-gp", 0, _winreg.KEY_ALL_ACCESS) as key:
+            rebootnumber = self._rebootnumber + 1
+            _winreg.SetValueEx(key, "RebootNumber", 0, _winreg.REG_DWORD, rebootnumber)
+
+    def _ResetRegistryRebootNumber(self):
+        with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"Software\WPKG-gp", 0, _winreg.KEY_ALL_ACCESS) as key:
+            rebootnumber = 0
+            _winreg.SetValueEx(key, "RebootNumber", 0, _winreg.REG_DWORD, rebootnumber)
+            
         
     def _Reset(self):
         self.isrunning = 0
@@ -39,7 +79,7 @@ class WPKGExecuter():
         self._package_name = ""
     
     def _getExecutable(self):
-        return self.wpkg_executable + " " + self.wpkg_parameters
+        return "%s /noreboot %s" % (self.wpkg_executable, self.wpkg_parameters)
     
     def _Parse(self):
         #Remove all strings not showing "YYYY-MM-DD hh:mm:ss, STATUS  : "
@@ -101,8 +141,15 @@ class WPKGExecuter():
         else:
             self._formattedline = formattedline
             return self._formattedline
+        
+    def _Write(self, handle, line):
+        if self.useWriteFile:
+            win32file.WriteFile(handle, line.encode('utf-8'))
+        else:
+            handle.write(line + '\n')
     
     def Execute(self, handle=sys.stdout, useWriteFile=False):
+        self.useWriteFile = useWriteFile
         if not self.isrunning:
             executable = self._getExecutable()
             self.isrunning = 1
@@ -116,29 +163,49 @@ class WPKGExecuter():
                 #self._MakeFormattedLine() returns false if we are to skip line
                 if not self._MakeFormattedLine():
                     continue
-                if useWriteFile:
-                    #win32file.WriteFile(handle, self.nextline.encode('utf-8')) #For debugging
-                    win32file.WriteFile(handle, self._formattedline.encode('utf-8'))
-                else:
-                    handle.write(self._formattedline + '\n')
+                self._Write(handle, self._formattedline)
+
+            exitcode = self.proc.wait()
+            
+            if exitcode == 770560: #WPKG returns this when it requests a reboot
+                # Check how many reboots in a row
+                if self._rebootnumber >= self.wpkg_maxreboots:
+                    self._Write(handle, "104 Installation requires a reboot, but the limit on maximum consecutive reboots (%i) is reached, so continuing." % self.wpkg_maxreboots)
+                    return
+
+                self._IncrementRegistryRebootNumber()
+                # Handle reboot
+                # Executed from a gpe:
+                if self.executedfrom == "gpe":
+                    if self.wpkg_gprebootpolicy == "force":
+                        self._Write(handle, "102 Installation requires a reboot. Rebooting now.")
+                        self.status = "Reboot pending"
+                        # Execute reboot in a separate thread in order to be able to return
+                        # Winlogon on Windows XP/2003 blocks reboots when executing Group Policies
+                        # so we have to wait for wpkg-gp (and other group policies) to finish
+                        # code for handling delaying of reboots in reboot module.
+                        thread.start_new_thread(reboot.RebootServer, ("Installation requires a reboot", 0, 1))
+                    elif self.wpkg_rebootpolicy == "ignore":
+                        self._Write(handle, "103 Installation requires a reboot, but policy set to ignore reboots.")
+                        self.status = "Reboot pending"
+                elif self.executedfrom == "client":
+                    self._Write(handle, "103 Installation requires reboot")
+                    self.status = "Reboot pending"
+            else: #Not requiring a reboot, so continuing
+                self._ResetRegistryRebootNumber()
+                
         else:
             msg = "201 WPKG is already running"
-            if useWriteFile:
-                win32file.WriteFile(handle, msg.encode('utf-8'))
-            else:
-                handle.write(msg)
+            self._Write(handle, msg)
+
     def Cancel(self, handle=sys.stdout, useWriteFile=False):
         if self.isrunning:
             self.proc.kill()
             msg = "101 WPKG process was killed"
         else:
             msg = "202 WPKG process is not running"
-        if useWriteFile:
-            win32file.WriteFile(handle, msg.encode('utf-8'))
-        else:
-            handle.write(msg)
+        self._Write(handle, msg)
                         
 if __name__=='__main__':
     WPKG = WPKGExecuter()
-    print (WPKG.getStatus())
     WPKG.Execute()
