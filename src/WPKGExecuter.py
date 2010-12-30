@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """WPKGExecuter.py
 Class for executing WPKG
 """
@@ -9,16 +10,29 @@ import _winreg
 import reboot
 import servicemanager
 import thread
+import os
 
 class WPKGExecuter():
     def __init__(self):
         self.debug = 0
         self.proc = 0
+        self.lines = []
         self.status = "OK"
-        self._ReadRegistryPolicySettings()
-        self.nextline = ""   #Read line
+        self.wpkg_verbosity = 1
         self._Reset()
+        self._ReadRegistryPolicySettings()
+        self._ReadRegistryRebootNumber()
+        self.nextline = ""   #Read line
         self.executedfrom = "gpe" #default
+
+    def _Reset(self):
+        self.isrunning = 0
+        self._formattedline = ""
+        self._pkgnum = 0
+        self._pkgtot = 0
+        self._operation = "Initializing WPKG"
+        self._package_id = ""
+        self._package_name = ""
         
     def setExecutedFrom(self, executedfrom):
         self.executedfrom = executedfrom #Either "gpe" or "client"
@@ -39,44 +53,43 @@ class WPKGExecuter():
                     self.wpkg_gprebootpolicy = _winreg.QueryValueEx(key, "GPRebootPolicy")[0]
                 except (WindowsError):
                     #set default
+                    self._Log(R"Unable to read HKLM\SOFTWARE\Policies\WPKG_GP\GPRebootPolicy, defaulting to 'force'", "info", 2)
                     self.wpkg_gprebootpolicy = "force"
                 try:
-                    # 999 = unlimited
                     self.wpkg_maxreboots = _winreg.QueryValueEx(key, "WpkgMaxReboots")[0]
                 except (WindowsError):
                     #set default
+                    self._Log(R"Unable to read HKLM\SOFTWARE\Policies\WPKG_GP\WpkgMaxReboots, defaulting to 10", "info", 2)
                     self.wpkg_maxreboots = 10
+                try:
+                    self.wpkg_verbosity = _winreg.QueryValueEx(key, "WpkgVerbosity")[0]
+                except (WindowsError):
+                    #set default
+                    self.wpkg_verbosity = 1
         except(WindowsError):
+            self._Log(R"Unable to open HKLM\SOFTWARE\Policies\WPKG_GP", "error", 1)
             self.status = "Error while reading WPKG policy registry settings"
-        self._ReadRegistryRebootNumber()
 
     def _ReadRegistryRebootNumber(self):
-        with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"Software\WPKG-gp", 0, _winreg.KEY_ALL_ACCESS) as key:
+        with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"SOFTWARE\WPKG-gp", 0, _winreg.KEY_ALL_ACCESS) as key:
             try:
                 self._rebootnumber = _winreg.QueryValueEx(key, "RebootNumber")[0]
             except (WindowsError):
                 self._rebootnumber = 0
+                self._Log(R"Unable to read HKLM\SOFTWARE\WPKG-gp\RebootNumber, defaulting to 0", "info", 2)
                 _winreg.SetValueEx(key, "RebootNumber", 0, _winreg.REG_DWORD, 0)
 
     def _IncrementRegistryRebootNumber(self):
         with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"Software\WPKG-gp", 0, _winreg.KEY_ALL_ACCESS) as key:
             rebootnumber = self._rebootnumber + 1
+            self._Log(R"Incrementing reboot number to %s" % rebootnumber, "info", 3)
             _winreg.SetValueEx(key, "RebootNumber", 0, _winreg.REG_DWORD, rebootnumber)
 
     def _ResetRegistryRebootNumber(self):
         with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"Software\WPKG-gp", 0, _winreg.KEY_ALL_ACCESS) as key:
             rebootnumber = 0
+            self._Log(R"Resetting reboot number to 0", "info", 3)
             _winreg.SetValueEx(key, "RebootNumber", 0, _winreg.REG_DWORD, rebootnumber)
-            
-        
-    def _Reset(self):
-        self.isrunning = 0
-        self._formattedline = ""
-        self._pkgnum = 0
-        self._pkgtot = 0
-        self._operation = "Initializing WPKG"
-        self._package_id = ""
-        self._package_name = ""
     
     def _getExecutable(self):
         return "%s /noreboot %s" % (self.wpkg_executable, self.wpkg_parameters)
@@ -143,19 +156,46 @@ class WPKGExecuter():
             return self._formattedline
         
     def _Write(self, handle, line):
+        self._Log(R"Writing '%s' to pipe" % line, "info", 2)
         if self.useWriteFile:
-            win32file.WriteFile(handle, line.encode('utf-8'))
+            try:
+                win32file.WriteFile(handle, line.encode('utf-8'))
+                return 1
+            except win32file.error, (n, f, e):
+                if n == 232: #The pipe is being closed (in the other end)
+                    _Log("A client closed the pipe unexpectedly.", "warning", 1)
+                    self.Cancel()
+                    return 1
+                else:
+                    raise
         else:
             handle.write(line + '\n')
+            return 1
+
+    #Write to syslog
+    def _Log(self, message, type="info", verbosity=1):
+        if verbosity <= self.wpkg_verbosity:
+            if type == "info":
+                servicemanager.LogInfoMsg(message)
+            elif type == "warning":
+                servicemanager.LogWarningMsg(message)
+            elif type == "error":
+                servicemanager.LogErrorMsg(message)
+            
     
     def Execute(self, handle=sys.stdout, useWriteFile=False):
         self.useWriteFile = useWriteFile
+        self.lines = []
         if not self.isrunning:
             executable = self._getExecutable()
             self.isrunning = 1
+            self._Log(R"Executing WPKG with the command %s" % executable, "info", 3)
             self.proc = subprocess.Popen(executable, stdout=subprocess.PIPE, universal_newlines=True)
+            self._Log(R"Executed WPKG with the command %s" % executable, "info", 3)
             while 1:
-                self.nextline = self.proc.stdout.readline()
+                self.nextline = self.proc.stdout.readline()#.decode(sys.stdin.encoding)
+                self._Log(R"WPKG command returned: %s" % self.nextline, "info", 3)
+                self.lines.append(self.nextline)
                 if not self.nextline: #If it is the last line an empty line is returned from readline()
                     #We are finished for now
                     self._Reset()
@@ -163,11 +203,18 @@ class WPKGExecuter():
                 #self._MakeFormattedLine() returns false if we are to skip line
                 if not self._MakeFormattedLine():
                     continue
-                self._Write(handle, self._formattedline)
-
+                if not self._Write(handle, self._formattedline):
+                    break
+                
             exitcode = self.proc.wait()
+            if exitcode == 1: #Cscript returned an error
+                self._Log(R"WPKG command returned an error: '%s'" % self.lines[-2], "error", 3)
+                self._Write(handle, "200 %s" % self.lines[-2])
+                return
+                
             
             if exitcode == 770560: #WPKG returns this when it requests a reboot
+                self._Log(R"WPKG requested a reboot", "info", 1)
                 # Check how many reboots in a row
                 if self._rebootnumber >= self.wpkg_maxreboots:
                     self._Write(handle, "104 Installation requires a reboot, but the limit on maximum consecutive reboots (%i) is reached, so continuing." % self.wpkg_maxreboots)
@@ -193,18 +240,21 @@ class WPKGExecuter():
                     self.status = "Reboot pending"
             else: #Not requiring a reboot, so continuing
                 self._ResetRegistryRebootNumber()
-                
         else:
+            self._Log(R"Client requested WPKG to execute, but WPKG is already running", "info", 1)
             msg = "201 WPKG is already running"
             self._Write(handle, msg)
 
-    def Cancel(self, handle=sys.stdout, useWriteFile=False):
+    def Cancel(self, handle=sys.stdout):
         if self.isrunning:
             self.proc.kill()
-            msg = "101 WPKG process was killed"
+            msg = "101 Cancel called, WPKG process was killed"
         else:
-            msg = "202 WPKG process is not running"
-        self._Write(handle, msg)
+            msg = "202 Cancel called, WPKG process was not running"
+        try:
+            self._Write(handle, msg)
+        except TypeError: #Maybe pipe is closed now
+            pass
                         
 if __name__=='__main__':
     WPKG = WPKGExecuter()
