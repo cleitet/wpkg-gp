@@ -66,6 +66,7 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
                 while hr==winerror.ERROR_MORE_DATA:
                     hr, thisd = ReadFile(pipeHandle, 256)
                     d = d + thisd
+                    d = d.rstrip("\0") #remove trailing nulls
                 ok = 1
             except error:
                 # Client disconnection - do nothing
@@ -84,7 +85,7 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
                     elif d == b"Cancel":
                         self.WPKGExecuter.Cancel(pipeHandle, useWriteFile=True)
                     else:
-                        msg = "203 Unknown command"
+                        msg = "203 Unknown command: %s" % d
                         WriteFile(pipeHandle, msg.encode('ascii'))
 
                 #msg = ("%s (on thread %d) sent me %s" % (GetNamedPipeHandleState(pipeHandle)[4],tid, d)).encode('ascii')
