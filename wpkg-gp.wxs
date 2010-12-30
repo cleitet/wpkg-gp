@@ -15,8 +15,11 @@ BuildArch:      The Architecture we are building for, x86 or x64
   <!--
   Keep track of old ID's here:
   0.5: {A70E99ED-87C6-4142-88A7-8491459494A2} {}'s added by an error, make sure to keep
+  0.6: 1f97d86c-2968-4def-9419-9d9cb349c339
+  0.7: f4fefaeb-9305-42dd-a6a6-dcdf0664a642
+  
   -->
-  <Product Name='WPKG-gp $(var.ReleaseVersion)' Id='1f97d86c-2968-4def-9419-9d9cb349c339'
+  <Product Name='WPKG-gp $(var.ReleaseVersion)' Id='f4fefaeb-9305-42dd-a6a6-dcdf0664a642'
            UpgradeCode='5d49d975-2f3e-4a47-97f5-3cb759de60b1'
            Language='1033' Codepage='1252' Version='$(var.ReleaseVersion).0'
            Manufacturer='The WPKG-gp team'>
@@ -34,7 +37,7 @@ BuildArch:      The Architecture we are building for, x86 or x64
     </Upgrade>
 
     <InstallExecuteSequence>
-      <RemoveExistingProducts After="InstallInitialize"/>
+      <RemoveExistingProducts Before="InstallInitialize"/>
     </InstallExecuteSequence>
 
     <Condition Message="You need to be an administrator to install this product.">
@@ -94,15 +97,20 @@ BuildArch:      The Architecture we are building for, x86 or x64
 							Description='Controller service for userspace WPKG management applications. (http://wpkg-gp.googlecode.com/)'
 							ErrorControl='normal' Start='auto' Type='ownProcess' />
 			<ServiceControl Id='WPKGServiceControl' Name='WpkgServer'
-                            Remove='uninstall' Start='install' Stop='uninstall' Wait='yes' />
+                            Remove='uninstall' Start='install' Stop='both' Wait='yes' />
 	      </Component>
 		  <Component Id='RegisterSoftwareSettings' Guid='51afb602-1e39-4fe0-a1e4-3695a6f061b1'>
+		    <?if $(sys.BUILDARCH) = "x64" ?>
+			<RegistryKey Id='SoftwareSettingsKey' Root='HKLM' Key='SOFTWARE\Wow6432Node\WPKG-gp' Action='createAndRemoveOnUninstall'>
+			  <RegistryValue Id='RegisterInstallPath'
+                             Name='InstallPath' Action='write' Type='string' Value='[InstallDir]' />
+	        </RegistryKey>
+			<?else ?>
 			<RegistryKey Id='SoftwareSettingsKey' Root='HKLM' Key='SOFTWARE\WPKG-gp' Action='createAndRemoveOnUninstall'>
 			  <RegistryValue Id='RegisterInstallPath'
                              Name='InstallPath' Action='write' Type='string' Value='[InstallDir]' />
-			  <RegistryValue Id='RegisterClient'
-					         Name='WPKGClientExecuteString' Action='write' Type='string' Value='[InstallDir]WpkgPipeClient.exe Execute' />
 	        </RegistryKey>
+			<?endif ?>
           </Component>
 		</Directory>
 	  <!-- WPKG-gp.dll and WPKG-gp-test.exe should go into platform specific program files dir. Make a reference here -->
@@ -133,6 +141,14 @@ BuildArch:      The Architecture we are building for, x86 or x64
           <RegistryValue Id='RegisterGPEDllProcessGroupPolicy'
                          Name='ProcessGroupPolicy' Action='write' Type='string' Value='ProcessGroupPolicy' />
         </RegistryKey>
+		<RegistryKey Id="RegisterGpLoggingKey" Root="HKLM"
+		             Key='System\CurrentControlSet\Services\EventLog\Application\WPKG-gp-GPE'
+					 Action='createAndRemoveOnUninstall' >
+		  <RegistryValue Id='GpLoggingKeyEventMessageFile'
+		                 Name='EventMessageFile' Action='write' Type='string' Value='[InstallDir]WPKG-gp.dll' />
+		  <RegistryValue Id='GpLoggingKeyTypesSupported'
+		                 Name='TypesSupported' Action='write' Type='integer' Value='7' />
+		</RegistryKey>
       </Component>
 	  <Component Id='GPTestTool' Guid='63603cb0-f599-4dae-b24e-723545c673cc'>
         <File Id='GPTestExe' DiskId='1' Name='WPKG-GP-Client.exe' Source='src\gpe\$(sys.BUILDARCH)\Release\WPKG-gp-test.exe' KeyPath='yes' />
@@ -152,10 +168,10 @@ BuildArch:      The Architecture we are building for, x86 or x64
     <Feature Id='Complete' Title='WPKG-gp $(var.ReleaseVersion)' Level='1' Description='Complete installation'
              Display='expand'>
       <Feature Id='GPExtentionFeature' Title='Group Policy Extention and service' Description='Install and register the Group Policy Extention DLL. This action installs the needed C++ Merge module as well.' Level='1'>
+	    <ComponentRef Id='RegisterSoftwareSettings' />
         <ComponentRef Id='GPExtention' />
 		<ComponentRef Id='WPKGClient' />
 		<ComponentRef Id='WPKGService' />
-        <ComponentRef Id='RegisterSoftwareSettings' />
         <ComponentRef Id='VCPP2010Redist' />
 		<ComponentRef Id='WpkgClientVC90RedistComponent' />
       </Feature>
@@ -163,10 +179,10 @@ BuildArch:      The Architecture we are building for, x86 or x64
         <ComponentRef Id='ADMComponent'/>
       </Feature>
       <Feature Id='WPKGGPClientFeature' Level='1' Title='Debug Tool' Description='Install a debugging tool that does the same as the wpkg-gp.dll'>
+	    <ComponentRef Id='RegisterSoftwareSettings' />
         <ComponentRef Id='GPTestTool' />
 		<ComponentRef Id='WPKGClient' />
 		<ComponentRef Id='WPKGService' />
-        <ComponentRef Id='RegisterSoftwareSettings' />
         <ComponentRef Id='VCPP2010Redist' />
 		<ComponentRef Id='WpkgClientVC90RedistComponent' />
       </Feature>
@@ -174,9 +190,15 @@ BuildArch:      The Architecture we are building for, x86 or x64
 	
 	<!-- Check to see if Visual C++ Redist 2010 is installed -->
     <Property Id='VCPP2010ISINSTALLED'>
+	  <?if $(sys.BUILDARCH) = "x64" ?>
       <RegistrySearch Id='VCPP2010IsInstalledRegSearch' Root='HKLM'
+                      Key='SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{DA5E371C-6333-3D8A-93A4-6FD5B20BCC6E}'
+                      Type='raw' Name='DisplayVersion'/>
+	  <?else ?>
+	  <RegistrySearch Id='VCPP2010IsInstalledRegSearch' Root='HKLM'
                       Key='SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{196BB40D-1578-3D01-B289-BEFC77A11A1E}'
                       Type='raw' Name='DisplayVersion'/>
+	  <?endif ?>
     </Property>
 
     <CustomAction Id="InstallVCPP2010" FileKey="VCPP2010RedistExe"
