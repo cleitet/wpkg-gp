@@ -11,6 +11,7 @@ import reboot
 import servicemanager
 import thread
 import os
+import WpkgNetworkUser
 
 class WPKGExecuter():
     def __init__(self):
@@ -255,6 +256,12 @@ class WPKGExecuter():
             self._Write(handle, msg)
         except TypeError: #Maybe pipe is closed now
             pass
+
+    def SetNetworkUser(self, username, password):
+        WpkgNetworkUser.set_network_user(username, password)
+    
+    def SetExecuteUser(self, username, password):
+        WpkgNetworkUser.set_execute_user(username, password)
                         
 if __name__=='__main__':
     WPKG = WPKGExecuter()

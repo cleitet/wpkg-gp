@@ -39,10 +39,6 @@ def runClient(server,msg,debug=False):
                 continue
             break
             
-        sys.stdout.flush()
-    
-    sys.stdout.flush()
-    print "1"
     sys.stdout.flush()
     return 0
     

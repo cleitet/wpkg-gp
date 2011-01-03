@@ -84,6 +84,26 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
                         self.WPKGExecuter.Execute(pipeHandle, useWriteFile=True)
                     elif d == b"Cancel":
                         self.WPKGExecuter.Cancel(pipeHandle, useWriteFile=True)
+                    elif d.split(" ")[0] == b"SetNetworkUser":
+                        try:
+                            username = d.split(" ")[1]
+                            password = d.split(" ")[2]
+                            self.WPKGExecuter.SetNetworkUser(username, password)
+                            msg = "100 Successfully updated NetworkUser"
+                            WriteFile(pipeHandle, msg.encode('ascii'))
+                        except Exception as e:
+                            msg = "200 Error when updating NetworkUser: %s" % e
+                            WriteFile(pipeHandle, msg.encode('ascii'))
+                    elif d.split(" ")[0] == b"SetExecuteUser":
+                        try:
+                            username = d.split(" ")[1]
+                            password = d.split(" ")[2]
+                            self.WPKGExecuter.SetExecuteUser(username, password)
+                            msg = "100 Successfully updated ExecuteUser"
+                            WriteFile(pipeHandle, msg.encode('ascii'))
+                        except Exception as e:
+                            msg = "200 Error when updating ExecuteUser: %s" % e
+                            WriteFile(pipeHandle, msg.encode('ascii'))
                     else:
                         msg = "203 Unknown command: %s" % d
                         WriteFile(pipeHandle, msg.encode('ascii'))
