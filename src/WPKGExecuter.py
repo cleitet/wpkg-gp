@@ -93,7 +93,8 @@ class WPKGExecuter():
             _winreg.SetValueEx(key, "RebootNumber", 0, _winreg.REG_DWORD, rebootnumber)
     
     def _getExecutable(self):
-        return "%s /noreboot %s" % (self.wpkg_executable, self.wpkg_parameters)
+        executable = os.path.expandvars(self.wpkg_executable)
+        return "%s /noreboot %s" % (executable, self.wpkg_parameters)
     
     def _Parse(self):
         #Remove all strings not showing "YYYY-MM-DD hh:mm:ss, STATUS  : "
