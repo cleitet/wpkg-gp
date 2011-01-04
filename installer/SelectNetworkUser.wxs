@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <UI>
+      <Dialog Id="SelectNetworkUser" Width="370" Height="270" Title="!(loc.VerifyReadyDlg_Title)">
+	    <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="!(loc.VerifyReadyDlgBannerBitmap)" />
+		<Control Id="Title" Type="Text" X="15" Y="6" Width="210" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Network User" />
+		<Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Enter the credentials for the network user" />
+        
+		
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+        
+        <Control Id="DescriptionLabel" Type="Text" X="20" Y="60" Width="350" Height="28" NoPrefix="yes" Text="Please enter the username and password of the user WPKG-gp will connect to the network as. Make sure it is prefixed with DOMAIN\USERNAME if it is a domain user" />
+		<Control Id="UsernameLabel" Type="Text" X="20" Y="90" Width="40" Height="15" NoPrefix="yes" Text="Username:" />
+        <Control Id="UsernameText" Type="Edit" X="65" Y="90" Width="150" Height="15" Property="NETWORKUSERNAME" Text="[NETWORKUSERNAME]">
+		  <Condition Action="disable"><![CDATA[CONFIGURENETWORKUSER <> 1]]></Condition>
+		  <Condition Action="enable">CONFIGURENETWORKUSER = 1</Condition>
+		</Control>
+		<Control Id="PasswordLabel" Type="Text" X="20" Y="110" Width="40" Height="15" NoPrefix="yes" Text="Password:" />
+		<Control Id="PasswordText" Type="Edit" X="65" Y="110" Width="150" Height="15" Password="yes" Property="NETWORKPASSWORD" Text="[NETWORKPASSWORD]">
+		  <Condition Action="disable"><![CDATA[CONFIGURENETWORKUSER <> 1]]></Condition>
+		  <Condition Action="enable">CONFIGURENETWORKUSER = 1</Condition>
+		</Control>
+		<Control Id="EnableUserFieldsCheckBox" Type="CheckBox" X="20" Y="210" Width="350" Height="18" CheckBoxValue="1" Property="CONFIGURENETWORKUSER" Text="Use a separate account for connecting to the network">
+		</Control>
+      </Dialog>
+    </UI>
+  </Fragment>
+</Wix>
