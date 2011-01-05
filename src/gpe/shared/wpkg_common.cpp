@@ -27,21 +27,14 @@ int EXECUTE_FROM_GPE=FALSE;
 int EXECUTE_FROM_EXE=FALSE;
 PFNSTATUSMESSAGECALLBACK gStatusCallback = NULL;
 
-void debug(const wchar_t* message, ...) {
+void debug(const wchar_t *format, ...) {
 	if(DEBUG == FALSE)
 		return;
 	
 	va_list args;
-	wchar_t* buffer;
-	int len;
-	va_start(args, message);
-	
-	len = _vscwprintf(message, args) + 1;
-	buffer = (wchar_t*) malloc(len * sizeof(wchar_t));
-	vswprintf_s(buffer, len, message, args);
-	fwprintf_s(stderr, buffer);
+	va_start(args, format);
+	vfwprintf_s(stdout, format, args);
 	va_end(args);
-	LocalFree(buffer);
 }
 
 DWORD logMessage(WORD wType, LPCWSTR message){
@@ -214,6 +207,8 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
 			return err; 
 		}
 	}
+	CloseServiceHandle(schService); 
+    CloseServiceHandle(schSCManager);
 
 	HANDLE hPipe;
 	LPCSTR lpvMessage="Execute";
