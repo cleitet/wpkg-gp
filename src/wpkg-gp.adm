@@ -53,7 +53,7 @@ WpkgParametersTip1="Eventual parameters to wpkg, if you are call a cmd script, t
 WpkgParametersTip2="would be in your cmd file, and this field should be empty."
 WpkgParametersTip3="If you call wpkg.js, you need '/synchronize /sendStatus /nonotify'"
 WpkgParametersTip4="here. Please note that you should never add /noReboot here, as"
-WpkgParametesrTip5="WPKG-GP adds it itself."
+WpkgParametersTip5="WPKG-GP adds it itself."
 
 WpkgVerbosityTip1="A value between 0 and 3, indicating how chatty wpkg-gp should be."
 
