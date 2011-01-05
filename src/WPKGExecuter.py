@@ -12,6 +12,7 @@ import servicemanager
 import thread
 import os
 import WpkgNetworkUser
+import win32wnet, win32netcon
 
 class WPKGExecuter():
     def __init__(self):
@@ -45,7 +46,8 @@ class WPKGExecuter():
         try:
             with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"SOFTWARE\Policies\WPKG_GP") as key:
                 #Path to wpkg.js
-                self.wpkg_executable = _winreg.QueryValueEx(key, "WpkgPath")[0]
+                executable = _winreg.QueryValueEx(key, "WpkgPath")[0]
+                self.wpkg_executable = os.path.expandvars(executable)
                 #Parameters to wpkg.js
                 self.wpkg_parameters = _winreg.QueryValueEx(key, "WpkgParameters")[0]
                 try:
@@ -67,9 +69,9 @@ class WPKGExecuter():
                 except (WindowsError):
                     #set default
                     self.wpkg_verbosity = 1
-        except(WindowsError):
-            self._Log(R"Unable to open HKLM\SOFTWARE\Policies\WPKG_GP", "error", 1)
-            self.status = "Error while reading WPKG policy registry settings"
+        except WindowsError as e:
+            self._Log(R"Unable to open HKLM\SOFTWARE\Policies\WPKG_GP. Maybe you don't have the WPKG-GP Group Policy Applied? Error was: %s" % e, "error", 1)
+            self.status = "Error while opening WPKG policy registry settings. Maybe you don't have the WPKG-GP Group Policy Applied."
 
     def _ReadRegistryRebootNumber(self):
         with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"SOFTWARE\WPKG-gp", 0, _winreg.KEY_ALL_ACCESS) as key:
@@ -93,8 +95,7 @@ class WPKGExecuter():
             _winreg.SetValueEx(key, "RebootNumber", 0, _winreg.REG_DWORD, rebootnumber)
     
     def _getExecutable(self):
-        executable = os.path.expandvars(self.wpkg_executable)
-        return "%s /noreboot %s" % (executable, self.wpkg_parameters)
+        return "%s /noreboot %s" % (self.wpkg_executable, self.wpkg_parameters)
     
     def _Parse(self):
         #Remove all strings not showing "YYYY-MM-DD hh:mm:ss, STATUS  : "
@@ -183,8 +184,46 @@ class WPKGExecuter():
                 servicemanager.LogWarningMsg(message)
             elif type == "error":
                 servicemanager.LogErrorMsg(message)
+
+    def _GetNetworkShare(self):
+        #Extracting \\servername_or_ip_or_whatever\\sharename
+        result = re.search(r'(\\\\[^\\]+\\[^\\]+)\\.*', self.wpkg_executable)
+        if result != None:
+            self.network_share = result.group(1)
+        else:
+            self.network_share = False
             
-    
+        return self.network_share
+            
+    def _ConnectToNetworkShare(self):
+        #Disconnect from the network if already connected
+        self._DisconnectFromNetworkShare()
+        
+        username, password = WpkgNetworkUser.get_network_user()
+        if username == "":
+            self._Log("No network user configured, continuing to connect as service user", "info", 3)
+            return #Connect as the same user as the network
+        else:
+            try:
+                win32wnet.WNetAddConnection2(win32netcon.RESOURCETYPE_DISK, None, self.network_share, None, username, password, 0)
+                self._Log("Successfully connected to %s as %s" % (self.network_share, username), "info", 3)
+            except win32wnet.error, (n, f, e):
+                if n == 1326: #Logon failure
+                    self._Log("Could not log on the network with the username: %s\n The error was: %s Continuing to log on to share as service user" % (username, e), "error", 1)
+                else:
+                    raise
+
+    def _DisconnectFromNetworkShare(self):
+        try:
+            self._Log("Trying to disconnect from the network share %s" % self.network_share, "info", 3)
+            win32wnet.WNetCancelConnection2(self.network_share, 1, True)
+            self._Log("Successfully disconnected from the network", "info", 3)
+        except win32wnet.error, (n, f, e):
+            if n == 2250: #This network connection does not exist
+                self._Log("Was not connected to the network", "info", 3)                
+            else:
+                raise
+                
     def Execute(self, handle=sys.stdout, useWriteFile=False):
         self.useWriteFile = useWriteFile
         self.lines = []
@@ -192,7 +231,13 @@ class WPKGExecuter():
             executable = self._getExecutable()
             self.isrunning = 1
             self._Log(R"Executing WPKG with the command %s" % executable, "info", 3)
+            
+            #Open the network share as another user, if necessary
+            if self._GetNetworkShare() != False:
+                self._ConnectToNetworkShare()
+            
             self.proc = subprocess.Popen(executable, stdout=subprocess.PIPE, universal_newlines=True)
+
             self._Log(R"Executed WPKG with the command %s" % executable, "info", 3)
             while 1:
                 self.nextline = self.proc.stdout.readline()#.decode(sys.stdin.encoding)
@@ -209,6 +254,10 @@ class WPKGExecuter():
                     break
                 
             exitcode = self.proc.wait()
+            #Closing handle to share
+            if self.network_share != False:
+                self._DisconnectFromNetworkShare()
+                
             if exitcode == 1: #Cscript returned an error
                 self._Log(R"WPKG command returned an error: '%s'" % self.lines[-2], "error", 3)
                 self._Write(handle, "200 %s" % self.lines[-2])
