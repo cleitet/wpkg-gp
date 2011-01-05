@@ -6,6 +6,7 @@ import sys
 import win32file
 import re
 import _winreg
+import os
 
 
 class WPKGExecuter():
@@ -39,6 +40,7 @@ class WPKGExecuter():
         self._package_name = ""
     
     def _getExecutable(self):
+        executable = self.wpkg_executable
         return self.wpkg_executable + " " + self.wpkg_parameters
     
     def _Parse(self):
