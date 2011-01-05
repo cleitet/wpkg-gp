@@ -17,9 +17,10 @@ BuildArch:      The Architecture we are building for, x86 or x64
   0.5: {A70E99ED-87C6-4142-88A7-8491459494A2} {}'s added by an error, make sure to keep
   0.6: 1f97d86c-2968-4def-9419-9d9cb349c339
   0.7: f4fefaeb-9305-42dd-a6a6-dcdf0664a642
+  0.8: aedc7b28-3b50-411b-b218-c4f2264a5adc
   
   -->
-  <Product Name='WPKG-gp $(var.ReleaseVersion)' Id='f4fefaeb-9305-42dd-a6a6-dcdf0664a642'
+  <Product Name='WPKG-gp $(var.ReleaseVersion)' Id='aedc7b28-3b50-411b-b218-c4f2264a5adc'
            UpgradeCode='5d49d975-2f3e-4a47-97f5-3cb759de60b1'
            Language='1033' Codepage='1252' Version='$(var.ReleaseVersion).0'
            Manufacturer='The WPKG-gp team'>
@@ -89,6 +90,8 @@ BuildArch:      The Architecture we are building for, x86 or x64
 			<File Id='PythonLibWin32Pipe'       DiskId='1' Name='win32pipe.pyd' Source='dist\win32pipe.pyd' />
 			<File Id='PythonLibWin32Security'   DiskId='1' Name='win32security.pyd' Source='dist\win32security.pyd' />
 			<File Id='PythonLibWin32Client'     DiskId='1' Name='win32service.pyd' Source='dist\win32service.pyd' />
+			<File Id='PythonLibWin32Crypt'      DiskId='1' Name='win32crypt.pyd' Source='dist\win32crypt.pyd' />
+			<File Id='PythonLibWin32wnet'       DiskId='1' Name='win32wnet.pyd' Source='dist\win32wnet.pyd' />
 			<File Id='WPKGClientWpkgPipeClient' DiskId='1' Name='WpkgPipeClient.exe' Source='dist\WpkgPipeClient.exe' />
 		  </Component>
 		  <Component Id='WPKGService' Guid='f86f943e-bd60-45aa-a425-e42f1a49ca1b'>
@@ -151,7 +154,7 @@ BuildArch:      The Architecture we are building for, x86 or x64
 		</RegistryKey>
       </Component>
 	  <Component Id='GPTestTool' Guid='63603cb0-f599-4dae-b24e-723545c673cc'>
-        <File Id='GPTestExe' DiskId='1' Name='WPKG-GP-Client.exe' Source='src\gpe\$(sys.BUILDARCH)\Release\WPKG-gp-test.exe' KeyPath='yes' />
+        <File Id='GPTestExe' DiskId='1' Name='WPKG-GP-test.exe' Source='src\gpe\$(sys.BUILDARCH)\Release\WPKG-gp-test.exe' KeyPath='yes' />
       </Component>
 	</DirectoryRef>
 	
@@ -208,6 +211,10 @@ BuildArch:      The Architecture we are building for, x86 or x64
     <CustomAction Id="InstallVCPP2010Silent" FileKey="VCPP2010RedistExe"
                   ExeCommand="/q" Execute="deferred"
                   Impersonate="no" Return="asyncNoWait" />
+				  
+	<CustomAction Id="UpdateNetworkUser" FileKey="WPKGClientWpkgPipeClient"
+				  ExeCommand="SetNetworkUser [NETWORKUSERNAME] [NETWORKPASSWORD]" Execute="deferred"
+				  Impersonate="no" Return="asyncWait" />
 
     <InstallExecuteSequence>
       <!-- <RemoveExistingProducts After="InstallInitialize">
@@ -221,11 +228,16 @@ BuildArch:      The Architecture we are building for, x86 or x64
         <!-- Execute only if component is selected for installation, and UILevel = 2 and skip if already installed -->
         <![CDATA[ ($VCPP2010Redist > 1) AND (UILevel = 2) AND NOT VCPP2010ISINSTALLED]]>
       </Custom>
+	  <Custom Action="UpdateNetworkUser" After="StartServices">
+        <!-- Execute only if CONFIGURENETWORKUSER is enabled -->
+        CONFIGURENETWORKUSER = 1
+      </Custom>
     </InstallExecuteSequence>
     
-    <UIRef Id="WixUI_Mondo" />
+    <UIRef Id="WixUI_Mondo_Customized" />
     <UI>
       <ProgressText Action="InstallVCPP2010">Launching Visual C++ 2010 Redistributable installer</ProgressText>
+	  <ProgressText Action="UpdateNetworkUser">Updating the network user</ProgressText>
     </UI>
     <WixVariable Id="WixUILicenseRtf" Value="installer\License.rtf" />
 
