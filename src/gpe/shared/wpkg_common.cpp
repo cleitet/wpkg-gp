@@ -102,7 +102,7 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
 
 	int err;
 	//Making sure the service has started
-	SERVICE_STATUS_PROCESS ssStatus; 
+	SERVICE_STATUS_PROCESS ssStatus;
 
     DWORD dwBytesNeeded;
 	// Get a handle to the SCM database. 
@@ -135,6 +135,7 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
     }
 	debug(L"Started OpenService\n");
 
+	/* -- REMOVED because it is not necessary to actually _start_ the service, just to wait for it
 	// Check the status
 	debug(L"Starting QueryServiceStatusEx to check if service is already running\n");
     if (!QueryServiceStatusEx( 
@@ -152,6 +153,7 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
     }
 	debug(L"Started QueryServiceStatusEx\n");
 
+	
 	// Check if the service is stopped
 	debug(L"Checking the current state of the service is SERVICE_STOPPED\n");
 
@@ -164,22 +166,36 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
             NULL) )      // no arguments 
 		{
 			err = GetLastError();
-			CloseServiceHandle(schService); 
-			CloseServiceHandle(schSCManager);
-			UpdateStatus(LOG_ERROR, L"Error when calling StartService", err);
-			return err;
+			if (err != 1056) { //An instance of the service is already running
+				CloseServiceHandle(schService); 
+				CloseServiceHandle(schSCManager);
+				UpdateStatus(LOG_ERROR, L"Error when calling StartService", err);
+				return err;
+			} else {
+				debug(L"Service was started in the meantime while wpkg-gp was trying to start it.\n");
+			}
 		}
-    }
+    }*/
 	
 
 	int i = 0;
 	// Check the status of the service
-
-	debug(L"Checking if service is now running, comparing %i to %i\n", ssStatus.dwCurrentState, SERVICE_RUNNING);
+	if (!QueryServiceStatusEx( 
+            schService,                     // handle to service 
+            SC_STATUS_PROCESS_INFO,         // information level
+            (LPBYTE) &ssStatus,             // address of structure
+            sizeof(SERVICE_STATUS_PROCESS), // size of structure
+            &dwBytesNeeded ) )              // size needed if buffer is too small
+	{
+			err = GetLastError();
+			CloseServiceHandle(schService); 
+			CloseServiceHandle(schSCManager);
+			UpdateStatus(LOG_ERROR, L"Error when calling QueryServiceStatusEx", err);
+			return err; 
+	}
 	
-	while(ssStatus.dwCurrentState != SERVICE_RUNNING) {
-		UpdateStatus(LOG_INFO, L"Service not started. Waiting for it to start.", FALSE);
-		
+	 while (ssStatus.dwCurrentState != SERVICE_RUNNING) {
+		UpdateStatus(LOG_INFO, L"Service has not started yet. Waiting for it to start.", FALSE);
 		debug(L"The current status was not SERVICE_RUNNING: %i, but %i, entering wait loop. i is %i (max 120)\n", SERVICE_RUNNING, ssStatus.dwCurrentState, i);
 		//Then wait for the service for maximum 120 seconds
 		if (i == 120){
@@ -193,6 +209,7 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
 		debug(L" Sleeping 1 second\n");
 		Sleep(1000);
 		i++;
+		debug(L"Checking if service is running, comparing CurrentState: %i to SERVICE_RUNNING: %i\n", ssStatus.dwCurrentState, SERVICE_RUNNING);
 		if (!QueryServiceStatusEx( 
             schService,                     // handle to service 
             SC_STATUS_PROCESS_INFO,         // information level
@@ -207,6 +224,7 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
 			return err; 
 		}
 	}
+
 	CloseServiceHandle(schService); 
     CloseServiceHandle(schSCManager);
 
