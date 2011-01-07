@@ -4,6 +4,7 @@ from glob import glob
 import os
 
 version = os.environ.get("version")
+architecture = os.environ.get("arch")
 company_name = "The WPKG-GP Team (http://wpkg-gp.googlecode.com)"
 copyright = "Copyright 2010 The WPKG-GP team"
 
@@ -32,7 +33,7 @@ WpkgServer = Target(
     cmdline_style='pywin32'
 )
 
-data_files = [("Microsoft.VC90.CRT", glob(r'redist\VC90\Microsoft.VC90.CRT\*.*'))]
+data_files = [("Microsoft.VC90.CRT", glob(r'redist\VC90\Microsoft.VC90.CRT-'+architecture+'\*.*'))]
 
 setup(
     version = version,
