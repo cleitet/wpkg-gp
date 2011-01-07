@@ -69,7 +69,7 @@ void UpdateStatus(int status_type, wchar_t* message, int errorCode){
 			0, errorCode, NULL, (LPWSTR) &wcMsg, 0, NULL);
 		debug(L"  FormatMessageW was run, value of wcMsg is: %ls", wcMsg);
 		swprintf_s(formatedMsg, BUFSIZE*sizeof(wchar_t), L"%ls\nError code: %i\nError message: %ls", message, errorCode, wcMsg);
-		LocalFree(&wcMsg);
+		LocalFree(wcMsg);
 	} else {
 		debug(L"Running UpdateStatus with no error code\n", message);
 		wcscpy_s(formatedMsg, message);

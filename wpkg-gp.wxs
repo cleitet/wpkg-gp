@@ -159,7 +159,7 @@ Keep track of old ID's here:
         Id="RegisterGpLoggingKey" Root="HKLM"
         Key='System\CurrentControlSet\Services\EventLog\Application\WPKG-gp-GPE'
         Action='createAndRemoveOnUninstall'>
-        <RegistryValue Id='GpLoggingKeyEventMessageFile' Name='EventMessageFile' Action='write' Type='string' Value='[InstallDir]WPKG-gp.dll' />
+        <RegistryValue Id='GpLoggingKeyEventMessageFile' Name='EventMessageFile' Action='write' Type='string' Value='[$(var.PlatformInstallDir)]WPKG-gp.dll' />
         <RegistryValue Id='GpLoggingKeyTypesSupported' Name='TypesSupported' Action='write' Type='integer' Value='7' />
       </RegistryKey>
     </Component>
