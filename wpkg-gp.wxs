@@ -122,6 +122,8 @@ Keep track of old ID's here:
               ThirdFailureActionType="none"
               ResetPeriodInDays="1" 
             />
+            <ServiceDependency Id='eventlog'>
+            <ServiceDependency Id='LanmanServer' />
           </ServiceInstall>
           <ServiceControl
             Id='WPKGServiceControl'
