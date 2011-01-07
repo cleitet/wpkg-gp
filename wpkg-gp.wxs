@@ -44,9 +44,6 @@ Keep track of old ID's here:
       Maximum='$(var.ReleaseVersion).0' IncludeMaximum='no'
     />
     </Upgrade>
-  <InstallExecuteSequence>
-    <RemoveExistingProducts Before="InstallInitialize"/>
-  </InstallExecuteSequence>
   
   <Condition Message="You need to be an administrator to install this product.">
     Privileged
@@ -96,7 +93,8 @@ Keep track of old ID's here:
           <File Id='PythonLibWin32Pipe'       DiskId='1' Name='win32pipe.pyd'       Source='dist-$(sys.BUILDARCH)\win32pipe.pyd' />
           <File Id='PythonLibWin32Security'   DiskId='1' Name='win32security.pyd'   Source='dist-$(sys.BUILDARCH)\win32security.pyd' />
           <File Id='PythonLibWin32Client'     DiskId='1' Name='win32service.pyd'    Source='dist-$(sys.BUILDARCH)\win32service.pyd' />
-          <File Id='PythonLibWin32Crypt'      DiskId='1' Name='win32crypt.pyd' Source='dist-$(sys.BUILDARCH)\win32crypt.pyd' />
+          <File Id='PythonLibWin32Crypt'      DiskId='1' Name='win32crypt.pyd'      Source='dist-$(sys.BUILDARCH)\win32crypt.pyd' />
+          <File Id='PythonLibWin32Wnet'       DiskId='1' Name='win32wnet.pyd'       Source='dist-$(sys.BUILDARCH)\win32wnet.pyd' />
           <File Id='WPKGClientWpkgPipeClient' DiskId='1' Name='WpkgPipeClient.exe'  Source='dist-$(sys.BUILDARCH)\WpkgPipeClient.exe' />
           <?if $(sys.BUILDARCH) = "x86" ?>
           <File Id='W9xPopen'                 DiskId='1' Name='w9xpopen.exe'        Source='dist-$(sys.BUILDARCH)\w9xpopen.exe' />
@@ -121,8 +119,7 @@ Keep track of old ID's here:
               ServiceName="WpkgServer"
               FirstFailureActionType="restart"
               SecondFailureActionType="restart"
-              ThirdFailureActionType="reboot"
-              RebootMessage="Could not start the WPKG service, requesting a reboot"
+              ThirdFailureActionType="none"
               ResetPeriodInDays="1" 
             />
           </ServiceInstall>
@@ -229,6 +226,7 @@ Keep track of old ID's here:
                 Impersonate="no" Return="asyncWait" />
 
   <InstallExecuteSequence>
+    <RemoveExistingProducts Before="InstallInitialize"/>
     <Custom Action="InstallVCPP2010" After="InstallFiles">
       <!-- Execute only if component is selected for installation, and UILevel = 2 and skip if already installed -->
       <![CDATA[ ($VCPP2010Redist > 1) AND (UILevel > 2) AND NOT VCPP2010ISINSTALLED]]>
