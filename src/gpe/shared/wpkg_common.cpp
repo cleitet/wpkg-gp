@@ -89,19 +89,18 @@ void UpdateStatus(int status_type, wchar_t* message, int errorCode){
 		debug(L"Running UpdateStatus with no error code\n", message);
 		wcscpy_s(formatedMsg, message);
 	}
-
-	if (DEBUG){
-		debug(formatedMsg);
-	}
+	
 
 	if (status_type == LOG_INFO){
 		logMessage(EVENTLOG_INFORMATION_TYPE, formatedMsg);
+		debug(L"Info: %ls\n", formatedMsg);
 		if (EXECUTE_FROM_EXE)
 			printf("Info: %S\n", formatedMsg);
 		if (EXECUTE_FROM_GPE)
 			gStatusCallback(FALSE, message);
 	} else {
 		logMessage(EVENTLOG_ERROR_TYPE, formatedMsg);
+		debug(L"Error: %ls\n", formatedMsg);
 		if (EXECUTE_FROM_EXE)
 			printf("Error: %S\n", formatedMsg);
 		if (EXECUTE_FROM_GPE)
