@@ -247,7 +247,6 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
 		debug(L" Sleeping 1 second\n");
 		Sleep(1000);
 		i++;
-		debug(L"Checking if service is running, comparing CurrentState: %i to SERVICE_RUNNING: %i\n", ssStatus.dwCurrentState, SERVICE_RUNNING);
 		if (!QueryServiceStatusEx( 
             schService,                     // handle to service 
             SC_STATUS_PROCESS_INFO,         // information level
@@ -261,6 +260,7 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
 			UpdateStatus(LOG_ERROR, L"Error when calling QueryServiceStatusEx in loop", err);
 			return err; 
 		}
+		debug(L"Checking if service is running, comparing CurrentState: %i to SERVICE_RUNNING: %i\n", ssStatus.dwCurrentState, SERVICE_RUNNING);
 	}
 
 	CloseServiceHandle(schService); 
@@ -368,6 +368,7 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
 			return err;
 		}
 		
+
 		debug(L"Successfully read from pipe, stripping status code\n");
 		// Remove 4 first characters
 		int start = 4;
@@ -378,7 +379,7 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
 			j++;
 		}
 		//NULL terminating string
-		chTempBuf [j] = NULL;
+		chTempBuf [j] = '\0';
 
 		debug(L"Converting string to wchar_t\n");
 		if (!MultiByteToWideChar( CP_UTF8, 0, (LPCSTR) chTempBuf, -1, wcBuf, BUFSIZE * sizeof(wchar_t))){
