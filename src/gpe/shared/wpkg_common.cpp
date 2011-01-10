@@ -2,6 +2,7 @@
 #include <userenv.h>
 #include <winbase.h>
 #include <stdio.h>
+#include <time.h>
 
 #include "wpkg_common.h"
 #include "MessageFile.h"
@@ -30,10 +31,24 @@ PFNSTATUSMESSAGECALLBACK gStatusCallback = NULL;
 void debug(const wchar_t *format, ...) {
 	if(DEBUG == FALSE)
 		return;
-	
+	FILE *fh;
+	wchar_t tmpbuf[128];
+	time_t rawtime;
+	struct tm timeinfo;
+	time ( &rawtime );
+	localtime_s(&timeinfo, &rawtime );
+	wcsftime( tmpbuf, 128, L"%Y-%m-%d %H:%M:%S ", &timeinfo);
 	va_list args;
 	va_start(args, format);
-	vfwprintf_s(stdout, format, args);
+	if (EXECUTE_FROM_GPE == TRUE){
+		_wfopen_s(&fh, L"c:\\wpkg-gp-debug.log", L"a");
+		fwprintf_s(fh, tmpbuf);
+		vfwprintf_s(fh, format, args);
+		fclose(fh);
+	} else {
+		fwprintf_s(stdout, tmpbuf);
+		vfwprintf_s(stdout, format, args);
+	}
 	va_end(args);
 }
 
@@ -75,6 +90,10 @@ void UpdateStatus(int status_type, wchar_t* message, int errorCode){
 		wcscpy_s(formatedMsg, message);
 	}
 
+	if (DEBUG){
+		debug(formatedMsg);
+	}
+
 	if (status_type == LOG_INFO){
 		logMessage(EVENTLOG_INFORMATION_TYPE, formatedMsg);
 		if (EXECUTE_FROM_EXE)
@@ -92,15 +111,35 @@ void UpdateStatus(int status_type, wchar_t* message, int errorCode){
 }
 
 DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
+	int err;
 	if(debug_flag)
 		DEBUG=true;
+
+	// Reading debug settings from registry
+	HKEY hKey = NULL;
+	DWORD dwDataType = REG_SZ;
+	DWORD dwSize = 0;
+	LPBYTE lpValue   = NULL;
+	
+	LONG lRet = RegOpenKeyExA(HKEY_LOCAL_MACHINE, "SOFTWARE\\Policies\\WPKG_GP", 0, KEY_QUERY_VALUE, &hKey);
+	lRet = RegQueryValueExA(hKey, "WpkgVerbosity", 0, &dwDataType, lpValue, &dwSize); // dwSize will contain the data size
+	// Allocate the buffer
+	lpValue = (LPBYTE) malloc(dwSize + 1);
+	lRet = RegQueryValueExA(hKey, "WpkgVerbosity", 0, &dwDataType, lpValue, &dwSize);
+	RegCloseKey(hKey);
+	// Adding null termination
+	lpValue[dwSize] = '\0';
+	if (atoi((LPSTR) lpValue) >= 3){
+		DEBUG=true;
+	}
+	free(lpValue);
+
 	if (called_by == GPE){
 		EXECUTE_FROM_GPE = TRUE;
 	}
 	else if (called_by == EXE)
 		EXECUTE_FROM_EXE = TRUE;
 
-	int err;
 	//Making sure the service has started
 	SERVICE_STATUS_PROCESS ssStatus;
 
