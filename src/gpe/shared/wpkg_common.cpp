@@ -233,7 +233,7 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
 	}
 	
 	 while (ssStatus.dwCurrentState != SERVICE_RUNNING) {
-		UpdateStatus(LOG_INFO, L"Service has not started yet. Waiting for it to start.", FALSE);
+		UpdateStatus(LOG_INFO, L"Waiting for the WPKG-GP software installation service to start.", FALSE);
 		debug(L"The current status was not SERVICE_RUNNING: %i, but %i, entering wait loop. i is %i (max 120)\n", SERVICE_RUNNING, ssStatus.dwCurrentState, i);
 		//Then wait for the service for maximum 120 seconds
 		if (i == 120){
