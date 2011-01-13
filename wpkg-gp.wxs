@@ -123,7 +123,8 @@ Keep track of old ID's here:
               ResetPeriodInDays="1" 
             />
             <ServiceDependency Id='eventlog' />
-            <ServiceDependency Id='LanmanServer' />
+            <ServiceDependency Id='LanmanServer' /> <!-- Required for Named Pipes -->
+            <ServiceDependency Id='LanmanWorkstation' /> <!-- Required for network communications -->
           </ServiceInstall>
           <ServiceControl
             Id='WPKGServiceControl'
