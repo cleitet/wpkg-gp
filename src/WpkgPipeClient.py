@@ -16,13 +16,22 @@ import winerror
 import sys, os, traceback
 
 debug = 0
+def setNetworkUser(username,password):
+    return runClient(".","SetNetworkUser %s %s" % (username, password), False)
+
     
-def runClient(server,msg,debug=False):
+def runClient(server,msg,output=True,debug=False):
+    if debug == True:
+        output = True
     try:
         pipeHandle = CreateFile("\\\\%s\\pipe\\WPKG" % server, GENERIC_READ|GENERIC_WRITE, 0, None, OPEN_EXISTING, 0, None)
     except pywintypes.error, (n, f, e):
-        print "Error when generating pipe handle: %s" % e
-        return 1
+        if output:
+            print "Error when generating pipe handle: %s" % e
+            return 1
+        else:
+            raise
+
     SetNamedPipeHandleState(pipeHandle, PIPE_READMODE_MESSAGE, None, None)
     WriteFile(pipeHandle, msg)
     msg = ""
@@ -31,16 +40,19 @@ def runClient(server,msg,debug=False):
             (hr, readmsg) = ReadFile(pipeHandle, 512)
             if debug:
                 print (readmsg)
-            else: #Strip 3 digit status code
+            elif output: #Strip 3 digit status code
                 print (readmsg[4:])
+            else:
+                lastcode = readmsg[0:3]
         except win32api.error as exc:
             if exc.winerror == winerror.ERROR_PIPE_BUSY:
                 win32api.Sleep(5000)
                 continue
             break
-            
-    sys.stdout.flush()
-    return 0
+    if not output:
+        return lastcode
+    else:
+        return 0
     
 
 def main():
