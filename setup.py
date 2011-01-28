@@ -39,6 +39,6 @@ setup(
     version = version,
     package_dir = {'': 'src'},
     packages = [''],
-	data_files=data_files,
+    data_files=data_files,
     service = [WpkgServer],
     console=[WpkgPipeClient])
