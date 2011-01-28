@@ -14,6 +14,7 @@ import traceback
 import thread
 import servicemanager
 import WPKGExecuter
+import WpkgLGPUpdater
 
 MY_PIPE_NAME = r"\\.\pipe\WPKG"
 
@@ -94,6 +95,7 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
                         except Exception as e:
                             msg = "200 Error when updating NetworkUser: %s" % e
                             WriteFile(pipeHandle, msg.encode('ascii'))
+                            raise
                     elif d.split(" ")[0] == b"SetExecuteUser":
                         try:
                             username = d.split(" ")[1]
@@ -104,6 +106,30 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
                         except Exception as e:
                             msg = "200 Error when updating ExecuteUser: %s" % e
                             WriteFile(pipeHandle, msg.encode('ascii'))
+                            raise
+                    elif d.split(" ")[0] == b"EnableViaLGP":
+                        try:
+                            action = d.split(" ")[1]
+                            wpkggp = WpkgLGPUpdater.WpkgLocalGPConfigurator()
+                            if action == "add":
+                                wpkggp.addToLocalPolicies()
+                                msg = "100 Successfully added to LGP"
+                                WriteFile(pipeHandle, msg.encode('ascii'))
+                            elif action == "remove":
+                                wpkggp.removeFromLocalPolicies()
+                                msg = "100 Successfully removed from LGP"
+                                WriteFile(pipeHandle, msg.encode('ascii'))
+                            else:
+                                msg = "200 Error when trying to EnableViaLGP %s" % e
+                                WriteFile(pipeHandle, msg.encode('ascii'))
+                        except IndexError:
+                            msg = "200 You need to run EnableViaLGP add|remove"
+                            WriteFile(pipeHandle, msg.encode('ascii'))
+                        except Exception as e:
+                            msg = "200 Error when trying to EnableViaLGP %s" % e
+                            WriteFile(pipeHandle, msg.encode('ascii'))
+                            raise
+                        
                     else:
                         msg = "203 Unknown command: %s" % d
                         WriteFile(pipeHandle, msg.encode('ascii'))
