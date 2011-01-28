@@ -29,7 +29,7 @@ def set_network_user(username, password):
         _winreg.SetValueEx(key, "NetworkUserName", 0, _winreg.REG_SZ, username)
         _winreg.SetValueEx(key, "NetworkUserEncryptedPassword", 0, _winreg.REG_BINARY, encrypted_password)
 
-def get_network_user():
+def get_network_user(only_user_name = False):
     """
     Returns the username and the decrypted password from the registry as a tuple
     The username and passwords are empty if the corresponding registry keys are
@@ -38,8 +38,11 @@ def get_network_user():
     with (_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"Software\WPKG-gp")) as key:
         try:
             username = _winreg.QueryValueEx(key, "NetworkUserName")[0]
-            encrypted_password = _winreg.QueryValueEx(key, "NetworkUserEncryptedPassword")[0]
-            password = win32crypt.CryptUnprotectData(encrypted_password, None, None, None, 1)[1]
+            if only_user_name == False:
+                encrypted_password = _winreg.QueryValueEx(key, "NetworkUserEncryptedPassword")[0]
+                password = win32crypt.CryptUnprotectData(encrypted_password, None, None, None, 1)[1]
+            else:
+                password = ""
         except WindowsError as e:
             username = ""
             password = ""
