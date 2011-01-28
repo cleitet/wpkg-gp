@@ -37,21 +37,6 @@
                 <Control Id="RepairDisabledText" Type="Text" X="60" Y="110" Width="280" Height="30" NoPrefix="yes" Text="!(loc.MaintenanceTypeDlgRepairDisabledText)" Hidden="yes">
                     <Condition Action="show">ARPNOREPAIR</Condition>
                 </Control>
-                <Control Id="RemoveButton" Type="PushButton" X="40" Y="130" Width="100" Height="17" ToolTip="!(loc.MaintenanceTypeDlgRemoveButtonTooltip)" Text="!(loc.MaintenanceTypeDlgRemoveButton)">
-                    <Publish Property="WixUI_InstallMode" Value="Remove">1</Publish>
-                    <Condition Action="disable">ARPNOREMOVE</Condition>
-                </Control>
-                <Control Id="RemoveText" Type="Text" X="60" Y="150" Width="280" Height="20" NoPrefix="yes" Text="!(loc.MaintenanceTypeDlgRemoveText)">
-                    <Condition Action="hide">ARPNOREMOVE</Condition>
-                </Control>
-                <Control Id="RemoveDisabledText" Type="Text" X="60" Y="150" Width="280" Height="20" NoPrefix="yes" Text="!(loc.MaintenanceTypeDlgRemoveDisabledText)" Hidden="yes">
-                    <Condition Action="show">ARPNOREMOVE</Condition>
-                </Control>
-				
-				<Control Id="UpdateNetworkUserButton" Type="PushButton" X="40" Y="170" Width="100" Height="17" ToolTip="Update the user WPKG-gp connects to the network as" Text="Update Network User">
-					<Publish Property="WixUI_InstallMode" Value="Repair">1</Publish>
-				</Control>
-                <Control Id="UpdateNetworkUserText" Type="Text" X="60" Y="190" Width="280" Height="20" NoPrefix="yes" Text="Update the user WPKG-gp connects to the network as." />
                 
 				<Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
                 <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Disabled="yes" Text="!(loc.WixUINext)" />

@@ -48,7 +48,9 @@ Keep track of old ID's here:
   <Condition Message="You need to be an administrator to install this product.">
     Privileged
   </Condition>
-  
+  <Condition Message="WPKGVERBOSITY is '[WPKGVERBOSITY]', but must be a number between 0 and 3.">
+    <![CDATA[ NOT WPKGVERBOSITY OR (WPKGVERBOSITY>=0 AND WPKGVERBOSITY<=3) ]]>
+  </Condition>
   <!-- VS2010 does not support Windows 2000 or XP =< SP1 anymore -->
   <Condition Message='You need a Windows version >= Windows XP SP2 to install this product.'>
     <![CDATA[  VersionNT >= 600 OR (VersionNT >= 501 AND ServicePackLevel >= 2) ]]>
@@ -133,11 +135,21 @@ Keep track of old ID's here:
             Start='install'
             Stop='both'
             Wait='yes'
-          />
+           />
         </Component>
         <Component Id='RegisterSoftwareSettings' Guid='51afb602-1e39-4fe0-a1e4-3695a6f061b1'>
-          <RegistryKey Id='SoftwareSettingsKey' Root='HKLM' Key='SOFTWARE\WPKG-gp' Action='createAndRemoveOnUninstall'>
-            <RegistryValue Id='RegisterInstallPath' Name='InstallPath' Action='write' Type='string' Value='[InstallDir]' />
+          <RegistryKey Id='SoftwareSettingsKey' Root='HKLM' Key='SOFTWARE\WPKG-gp' Action='create'>
+            <RegistryValue Id='RegisterInstallPath' Name='InstallPath' Action='write' Type='string' Value='[$(var.PlatformInstallDir)]' />
+          </RegistryKey>
+        </Component>
+        <Component Id='RegisterPolicySettings' Guid='864a40ae-0067-46c5-8aa5-ae4a2f9b89a7' Permanent="yes">
+          <RegistryKey Id='PolicySettingsKey' Root='HKLM' Key='SOFTWARE\Policies\WPKG_GP' Action='create'>
+            <RegistryValue Id='WpkgPathValue' Name='WpkgPath' Action='write' Type='string' Value='[WPKGPATH]' />
+            <RegistryValue Id='WpkgVerbosityValue' Name='WpkgVerbosity' Action='write' Type='string' Value='[WPKGVERBOSITY]' />
+          </RegistryKey>
+          <RegistryKey Id='SystemPoliciesKey' Root='HKLM' Key='SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' Action='create'>
+            <RegistryValue Id='VerboseStatusValue' Name='verbosestatus' Action='write' Type='integer' Value='[REGSAVEVERBOSEBOOT]' />
+            <RegistryValue Id='DisableMessagesValue' Name='DisableStatusMessages' Action='write' Type='integer' Value='[REGSAVEDISABLEBOOTMESSAGES]' />
           </RegistryKey>
         </Component>
       </Directory>
@@ -180,7 +192,6 @@ Keep track of old ID's here:
     </Directory>
   </DirectoryRef>
     
-    
   <Feature Id='Complete' Title='WPKG-gp $(var.ReleaseVersion)' Level='1' Description='Complete installation' Display='expand'>
     <Feature Id='GPExtentionFeature' Title='Group Policy Extention and service' Description='Install and register the Group Policy Extention DLL. This action installs the needed C++ Merge module as well.' Level='1'>
       <ComponentRef Id='RegisterSoftwareSettings' />
@@ -189,6 +200,7 @@ Keep track of old ID's here:
       <ComponentRef Id='WPKGService' />
       <ComponentRef Id='VCPP2010Redist' />
       <ComponentRef Id='WpkgClientVC90RedistComponent' />
+      <ComponentRef Id='RegisterPolicySettings' />
     </Feature>
     <Feature Id='ADMComponentFeature' Title='Administrative Template' Description='Install the Administrative Template for configuring the WPKG-gp GPE' Level='1'>
       <ComponentRef Id='ADMComponent'/>
@@ -200,7 +212,13 @@ Keep track of old ID's here:
       <ComponentRef Id='WPKGService' />
       <ComponentRef Id='VCPP2010Redist' />
       <ComponentRef Id='WpkgClientVC90RedistComponent' />
+      <ComponentRef Id='RegisterPolicySettings' />
     </Feature>
+  </Feature>
+  <!-- Hack to make registry changes happen on reinstall -->
+  <Feature Id="FeatureToReinstallDuringChange" Level='1' Display="hidden">
+    <ComponentRef Id='RegisterPolicySettings' />
+    <ComponentRef Id='WPKGService' />
   </Feature>
   
   
@@ -216,17 +234,87 @@ Keep track of old ID's here:
                     Type='raw' Name='DisplayVersion'/>
     <?endif ?>
   </Property>
+  
+  <!-- Properties for UI -->
+  <Property Id='NETWORKUSERNAME' >
+    <RegistrySearch Id="NetworkUserNameSearch" Root="HKLM"
+                    Key="SOFTWARE\WPKG-gp"
+                    Type="raw" Name="NetworkUserName" />
+  </Property>
+  <SetProperty Id='UIENABLEVERBOSEBOOT' Value='1' After="AppSearch" Sequence='ui'>
+    <![CDATA[ ENABLEVERBOSEBOOT<>"0" ]]>
+  </SetProperty>
+  <SetProperty Id='ENABLEVERBOSEBOOT' Value='0' Before="ExecuteAction" Sequence="ui">
+    NOT UIENABLEVERBOSEBOOT
+  </SetProperty>
+  <Property Id='REGSAVEVERBOSEBOOT' Value='1' />
+  <SetProperty Id='REGSAVEVERBOSEBOOT' Value='0' After="AppSearch" Sequence='execute'>
+    ENABLEVERBOSEBOOT="0"
+  </SetProperty>
+   
+  <SetProperty Id='DISABLEBOOTMESSAGES' Value='1' After="AppSearch">
+    <![CDATA[ DISABLEBOOTMESSAGES AND DISABLEBOOTMESSAGES<>"0" ]]>
+  </SetProperty>
+  <Property Id='REGSAVEDISABLEBOOTMESSAGES' Value='0' />
+  <SetProperty Id='REGSAVEDISABLEBOOTMESSAGES' Value='1' After="SetDISABLEBOOTMESSAGES">
+    DISABLEBOOTMESSAGES=1
+  </SetProperty>
+  
+  <Property Id="REGWPKGPATH">
+    <RegistrySearch Id='WpkgPathSearch' Root='HKLM'
+                    Key='SOFTWARE\Policies\WPKG_GP'
+                    Type='raw' Name='WpkgPath'/>
+  </Property>
+  <SetProperty Id='WPKGPATH' Value='[REGWPKGPATH]' After="AppSearch" Secure="yes">
+    NOT WPKGPATH
+  </SetProperty>
+  
+  
+  <Property Id="REGWPKGVERBOSITY">
+    <RegistrySearch Id='WpkgVerbositySearch' Root='HKLM'
+                    Key='SOFTWARE\Policies\WPKG_GP'
+                    Type='raw' Name='WpkgVerbosity'/>
+  </Property>
+  <SetProperty Id='WPKGVERBOSITY' Value='[REGWPKGVERBOSITY]' After="AppSearch" Secure="yes">
+    NOT WPKGVERBOSITY
+  </SetProperty>
+  
   <CustomAction Id="InstallVCPP2010" FileKey="VCPP2010RedistExe"
                 ExeCommand="/passive" Execute="deferred"
-                Impersonate="no" Return="asyncNoWait" />
-    
+                Impersonate="no" Return="asyncNoWait" />  
   <CustomAction Id="InstallVCPP2010Silent" FileKey="VCPP2010RedistExe"
                 ExeCommand="/q" Execute="deferred"
                 Impersonate="no" Return="asyncNoWait" />
-          
-  <CustomAction Id="UpdateNetworkUser" FileKey="WPKGClientWpkgPipeClient"
-                ExeCommand="SetNetworkUser [NETWORKUSERNAME] [NETWORKPASSWORD]" Execute="deferred"
-                Impersonate="no" Return="asyncWait" />
+                
+  <CustomAction Id="UpdateNetworkUser_CMD" Property="UpdateNetworkUser"
+                Value='"[#WPKGClientWpkgPipeClient]" SetNetworkUser [NETWORKUSERNAME] [NETWORKPASSWORD]'
+                Execute="immediate" />
+  <?if $(sys.BUILDARCH) = "x64" ?>
+    <CustomAction Id="UpdateNetworkUser" BinaryKey="WixCA" DllEntry="CAQuietExec64" Execute="deferred" Return="ignore" Impersonate="no" />
+  <?else ?>
+    <CustomAction Id="UpdateNetworkUser" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="deferred" Return="ignore" Impersonate="no" />
+  <?endif ?>
+  
+  <CustomAction Id="AddToLGP_CMD" Property="AddToLGP"
+                Value='"[#WPKGClientWpkgPipeClient]" EnableViaLGP add'
+                Execute="immediate" />
+  <?if $(sys.BUILDARCH) = "x64" ?>
+    <CustomAction Id="AddToLGP" BinaryKey="WixCA" DllEntry="CAQuietExec64" Execute="deferred" Return="ignore" Impersonate="no" />
+  <?else ?>
+    <CustomAction Id="AddToLGP" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="deferred" Return="ignore" Impersonate="no" />
+  <?endif ?>
+  
+  <?if $(sys.BUILDARCH) = "x64" ?>
+    <CustomAction Id="RemoveFromLGP_CMD" Property="QtExec64CmdLine" Value='"[$(var.PlatformInstallDir)]WpkgPipeClient.exe" EnableViaLGP remove' Execute="immediate" />
+    <CustomAction Id="RemoveFromLGP" BinaryKey="WixCA" DllEntry="CAQuietExec64" Execute="immediate" Return="ignore" />
+  <?else ?>
+    <CustomAction Id="RemoveFromLGP_CMD" Property="QtExecCmdLine" Value='"[$(var.PlatformInstallDir)]WpkgPipeClient.exe" EnableViaLGP remove' Execute="immediate" />
+    <CustomAction Id="RemoveFromLGP" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="immediate" Return="ignore" />
+  <?endif ?>
+
+  <CustomAction Id="SetREINSTALL" 
+                Property="REINSTALL"
+                Value="FeatureToReinstallDuringChange" />
 
   <InstallExecuteSequence>
     <RemoveExistingProducts Before="InstallInitialize"/>
@@ -238,16 +326,43 @@ Keep track of old ID's here:
       <!-- Execute only if component is selected for installation, and UILevel = 2 and skip if already installed -->
       <![CDATA[ ($VCPP2010Redist > 1) AND (UILevel = 2) AND NOT VCPP2010ISINSTALLED]]>
     </Custom>
-  <Custom Action="UpdateNetworkUser" After="StartServices">
-      <!-- Execute only if CONFIGURENETWORKUSER is enabled -->
-      CONFIGURENETWORKUSER = 1
+    
+    <Custom Action="UpdateNetworkUser_CMD" After="CostFinalize" />
+    <Custom Action="UpdateNetworkUser" After="StartServices">
+      NETWORKUSERNAME AND NETWORKPASSWORD
+    </Custom>
+    
+    <Custom Action="AddToLGP_CMD" After="CostFinalize" />
+    <Custom Action="AddToLGP" After="StartServices">
+      ENABLEVIALGP = 1
+    </Custom>
+    
+    <Custom Action="RemoveFromLGP_CMD" After="CostFinalize" />
+    <Custom Action="RemoveFromLGP" After="RemoveFromLGP_CMD">
+      <!-- See http://stackoverflow.com/questions/320921/how-to-add-a-wix-custom-action-that-happens-only-on-uninstall-via-msi -->
+      <!-- http://strangelights.com/blog/archive/2004/07/07/160.aspx -->
+      <![CDATA[
+        (?WPKGClient>2 AND $WPKGClient=2)
+        OR (?WPKGClient>2 AND NOT ENABLEVIALGP)
+      ]]>
+    </Custom>
+    
+    <Custom Action="SetREINSTALL" Before="CostInitialize">
+      <![CDATA[
+        Installed
+        AND NOT (REMOVE ~= "ALL")
+        AND NOT REINSTALL
+        AND ?WPKGClient>2
+      ]]>
     </Custom>
   </InstallExecuteSequence>
     
   <UIRef Id="WixUI_Mondo_Customized" />
   <UI>
     <ProgressText Action="InstallVCPP2010">Launching Visual C++ 2010 Redistributable installer</ProgressText>
-  <ProgressText Action="UpdateNetworkUser">Updating the network user</ProgressText>
+    <ProgressText Action="UpdateNetworkUser">Updating the network user</ProgressText>
+    <ProgressText Action="AddToLGP">Removing config to Local Group Policies</ProgressText>
+    <ProgressText Action="RemoveFromLGP">Removing config from Local Group Policies</ProgressText>
   </UI>
   <WixVariable Id="WixUILicenseRtf" Value="installer\License.rtf" />
 </Product>
