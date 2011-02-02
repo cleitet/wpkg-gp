@@ -15,6 +15,8 @@ import thread
 import servicemanager
 import WPKGExecuter
 import WpkgLGPUpdater
+import _winreg, logging, logging.handlers
+import os.path, shutil
 
 MY_PIPE_NAME = r"\\.\pipe\WPKG"
 
@@ -37,7 +39,34 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
         self.overlapped.hEvent = CreateEvent(None,0,0,None)
         self.thread_handles = []
         self.WPKGExecuter = WPKGExecuter.WPKGExecuter()
-
+        try:
+            with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\policies\WPKG_GP") as key:
+                verbosity = int(_winreg.QueryValueEx(key, "WpkgVerbosity")[0])
+        except WindowsError:
+            verbosity = 1
+        if verbosity == 3:
+            log_level = logging.DEBUG
+        elif verbosity == 2:
+            log_level = logging.INFO
+        elif verbosity == 1:
+            log_level = logging.ERROR
+        else:
+            log_level = logging.CRITICAL
+        self.logger = logging.getLogger("WpkgService")
+        logdir = os.path.join(os.path.dirname(__file__), "logs")
+        try:
+            os.makedirs(logdir)
+        except WindowsError:
+            pass
+        logfile = os.path.join(logdir, "WpkgServiceLog")
+        self.logger.setLevel(log_level)
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=200000, backupCount="2")
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
+        self.logger.debug("Logging started")
+        
+    
     def CreatePipeSecurityObject(self):
         # Create a security object giving World read/write access,
         # but only "Owner" modify access.
@@ -58,6 +87,7 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
 
     # The functions executed in their own thread to process a client request.
     def DoProcessClient(self, pipeHandle, tid):
+        self.logger.debug("DoProcessClient() start")
         try:
             try:
                 # Create a loop, reading large data.  If we knew the data stream was
@@ -70,6 +100,7 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
                     d = d.rstrip("\0") #remove trailing nulls
                 ok = 1
             except error:
+                self.logger.info("Client disconnected")
                 # Client disconnection - do nothing
                 ok = 0
 
@@ -78,22 +109,28 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
             if ok:
                 if self.WPKGExecuter.getStatus() != "OK":
                     msg = "200 " + self.WPKGExecuter.getStatus()
+                    self.logger.info("Wpkg Executer is not ready. Returning '%s' to client." % msg)
                     servicemanager.LogErrorMsg(msg)
                     WriteFile(pipeHandle, msg.encode('ascii'))
                 else:	
                     if d == b"Execute":
+                        self.logger.info("Received 'Execute', executing WPKG")
                         self.WPKGExecuter.Execute(pipeHandle, useWriteFile=True)
                     elif d == b"Cancel":
+                        self.logger.info("Received 'Cancel', cancelling WPKG")
                         self.WPKGExecuter.Cancel(pipeHandle, useWriteFile=True)
                     elif d.split(" ")[0] == b"SetNetworkUser":
+                        self.logger.info("Received 'SetNetworkUser', configuring the network user")
                         try:
                             username = d.split(" ")[1]
                             password = d.split(" ")[2]
                             self.WPKGExecuter.SetNetworkUser(username, password)
                             msg = "100 Successfully updated NetworkUser"
+                            self.logger.info("Sending '%s' to client" % msg)
                             WriteFile(pipeHandle, msg.encode('ascii'))
                         except Exception as e:
                             msg = "200 Error when updating NetworkUser: %s" % e
+                            self.logger.info("Sending '%s' to client" % msg)
                             WriteFile(pipeHandle, msg.encode('ascii'))
                             raise
                     elif d.split(" ")[0] == b"SetExecuteUser":
@@ -102,9 +139,11 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
                             password = d.split(" ")[2]
                             self.WPKGExecuter.SetExecuteUser(username, password)
                             msg = "100 Successfully updated ExecuteUser"
+                            self.logger.info("Sending '%s' to client" % msg)
                             WriteFile(pipeHandle, msg.encode('ascii'))
                         except Exception as e:
                             msg = "200 Error when updating ExecuteUser: %s" % e
+                            self.logger.info("Sending '%s' to client" % msg)
                             WriteFile(pipeHandle, msg.encode('ascii'))
                             raise
                     elif d.split(" ")[0] == b"EnableViaLGP":
@@ -114,29 +153,38 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
                             if action == "add":
                                 wpkggp.addToLocalPolicies()
                                 msg = "100 Successfully added to LGP"
+                                self.logger.info("Sending '%s' to client" % msg)
                                 WriteFile(pipeHandle, msg.encode('ascii'))
                             elif action == "remove":
                                 wpkggp.removeFromLocalPolicies()
                                 msg = "100 Successfully removed from LGP"
+                                self.logger.info("Sending '%s' to client" % msg)
                                 WriteFile(pipeHandle, msg.encode('ascii'))
                             else:
                                 msg = "200 Error when trying to EnableViaLGP %s" % e
+                                self.logger.info("Sending '%s' to client" % msg)
                                 WriteFile(pipeHandle, msg.encode('ascii'))
                         except IndexError:
                             msg = "200 You need to run EnableViaLGP add|remove"
+                            self.logger.info("Sending '%s' to client" % msg)
                             WriteFile(pipeHandle, msg.encode('ascii'))
+                            raise
                         except Exception as e:
                             msg = "200 Error when trying to EnableViaLGP %s" % e
+                            self.logger.info("Sending '%s' to client" % msg)
                             WriteFile(pipeHandle, msg.encode('ascii'))
                             raise
                         
                     else:
                         msg = "203 Unknown command: %s" % d
+                        self.logger.info("Sending '%s' to client" % msg)
                         WriteFile(pipeHandle, msg.encode('ascii'))
 
                 #msg = ("%s (on thread %d) sent me %s" % (GetNamedPipeHandleState(pipeHandle)[4],tid, d)).encode('ascii')
                 #WriteFile(pipeHandle, msg)
-                
+        except Exception, e:
+            self.logger.exception("Error when processing Named Pipe Client:")
+            raise
         finally:
             ApplyIgnoreError( DisconnectNamedPipe, (pipeHandle,) )
             ApplyIgnoreError( CloseHandle, (pipeHandle,) )
