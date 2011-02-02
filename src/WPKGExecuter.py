@@ -14,6 +14,7 @@ import os
 import WpkgNetworkUser
 import win32wnet, win32netcon
 import logging
+import shlex
 
 class NullHandler(logging.Handler):
     def emit(self, record):
@@ -52,9 +53,7 @@ class WPKGExecuter():
             with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"SOFTWARE\Policies\WPKG_GP") as key:
                 #Path to wpkg.js
                 executable = _winreg.QueryValueEx(key, "WpkgPath")[0]
-                self.wpkg_executable = os.path.expandvars(executable)
-                #Parameters to wpkg.js
-                self.wpkg_parameters = _winreg.QueryValueEx(key, "WpkgParameters")[0]
+                self.wpkg_execute_command = self._parseExecuteCommand(executable)
                 try:
                     # "force" = force reboot for GP (install at boot) installs
                     # "ignore" = do not reboot
@@ -99,8 +98,35 @@ class WPKGExecuter():
             logger.info(R"Resetting reboot number to 0")
             _winreg.SetValueEx(key, "RebootNumber", 0, _winreg.REG_DWORD, rebootnumber)
     
-    def _getExecutable(self):
-        return "%s /noreboot %s" % (self.wpkg_executable, self.wpkg_parameters)
+    def _parseExecuteCommand(self, commandstring=False):
+        if commandstring == False:
+            commandstring = self.wpkg_execute_command
+        commandstring = os.path.expandvars(commandstring) #Expanding variables
+        #check if starts with cscript and contains /noReboot /synchronize and/or /sendStatus is in command. If not, add it.
+        #if not, ignore it
+        commandlist = commandstring.split(" ")
+        is_js_script = False
+        flags = []
+        if commandlist[0][:-3] == ".js" or commandlist[0].lower() == "cscript":
+                is_js_script = True
+        if is_js_script == True:
+            if commandlist[0].lower() != "cscript":
+                logger.debug("WpkgCommand is a js file but is missing 'cscript', adding")
+                commandlist.insert(0, "cscript")
+            if not "/noReboot" in commandlist:
+                logger.debug("WpkgCommand is a js but is missing /noReboot, adding")
+                commandlist.append("/noReboot")
+            if not "/synchronize" in commandlist:
+                logger.debug("WpkgCommand is a js but is missing /synchronize, adding")
+                commandlist.append("/synchronize")
+            if not "/sendStatus" in commandlist:
+                logger.debug("WpkgCommand is a js but is missing /sendStatus, adding")
+                commandlist.append("/sendStatus")
+            if not "/nonotify" in commandlist:
+                logger.debug("WpkgCommand is a js but is missing /nonotify, adding")
+                commandlist.append("/nonotify")
+        self.wpkg_execute_command = " ".join(commandlist)
+        return self.wpkg_execute_command
     
     def _Parse(self):
         #Remove all strings not showing "YYYY-MM-DD hh:mm:ss, STATUS  : "
@@ -182,7 +208,7 @@ class WPKGExecuter():
 
     def _GetNetworkShare(self):
         #Extracting \\servername_or_ip_or_whatever\\sharename
-        result = re.search(r'(\\\\[^\\]+\\[^\\]+)\\.*', self.wpkg_executable)
+        result = re.search(r'(\\\\[^\\]+\\[^\\]+)\\.*', self.wpkg_execute_command)
         if result != None:
             self.network_share = result.group(1)
         else:
@@ -223,17 +249,17 @@ class WPKGExecuter():
         self.useWriteFile = useWriteFile
         self.lines = []
         if not self.isrunning:
-            executable = self._getExecutable()
+            execute_command = self._parseExecuteCommand()
             self.isrunning = 1
-            logger.info(R"Executing WPKG with the command %s" % executable)
+            logger.info(R"Executing WPKG with the command %s" % execute_command)
             
             #Open the network share as another user, if necessary
             if self._GetNetworkShare() != False:
                 self._ConnectToNetworkShare()
             
-            self.proc = subprocess.Popen(executable, stdout=subprocess.PIPE, universal_newlines=True)
+            self.proc = subprocess.Popen(execute_command, stdout=subprocess.PIPE, universal_newlines=True)
 
-            logger.info(R"Executed WPKG with the command %s" % executable)
+            logger.info(R"Executed WPKG with the command %s" % execute_command)
             while 1:
                 self.nextline = self.proc.stdout.readline()#.decode(sys.stdin.encoding)
                 logger.info(R"WPKG command returned: %s" % self.nextline)
