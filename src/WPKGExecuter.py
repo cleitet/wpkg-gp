@@ -13,10 +13,15 @@ import thread
 import os
 import WpkgNetworkUser
 import win32wnet, win32netcon
+import logging
+
+class NullHandler(logging.Handler):
+    def emit(self, record):
+        pass
+
 
 class WPKGExecuter():
     def __init__(self):
-        self.debug = 0
         self.proc = 0
         self.lines = []
         self.status = "OK"
@@ -56,13 +61,13 @@ class WPKGExecuter():
                     self.wpkg_gprebootpolicy = _winreg.QueryValueEx(key, "GPRebootPolicy")[0]
                 except (WindowsError):
                     #set default
-                    self._Log(R"Unable to read HKLM\SOFTWARE\Policies\WPKG_GP\GPRebootPolicy, defaulting to 'force'", "info", 2)
+                    logger.info(R"Unable to read HKLM\SOFTWARE\Policies\WPKG_GP\GPRebootPolicy, defaulting to 'force'")
                     self.wpkg_gprebootpolicy = "force"
                 try:
                     self.wpkg_maxreboots = _winreg.QueryValueEx(key, "WpkgMaxReboots")[0]
                 except (WindowsError):
                     #set default
-                    self._Log(R"Unable to read HKLM\SOFTWARE\Policies\WPKG_GP\WpkgMaxReboots, defaulting to 10", "info", 2)
+                    logger.info(R"Unable to read HKLM\SOFTWARE\Policies\WPKG_GP\WpkgMaxReboots, defaulting to 10")
                     self.wpkg_maxreboots = 10
                 try:
                     self.wpkg_verbosity = _winreg.QueryValueEx(key, "WpkgVerbosity")[0]
@@ -70,7 +75,7 @@ class WPKGExecuter():
                     #set default
                     self.wpkg_verbosity = 1
         except WindowsError as e:
-            self._Log(R"Unable to open HKLM\SOFTWARE\Policies\WPKG_GP. Maybe you don't have the WPKG-GP Group Policy Applied? Error was: %s" % e, "error", 1)
+            logger.error(R"Unable to open HKLM\SOFTWARE\Policies\WPKG_GP. Maybe you don't have the WPKG-GP Group Policy Applied? Error was: %s" % e)
             self.status = "Error while opening WPKG policy registry settings. Maybe you don't have the WPKG-GP Group Policy Applied."
 
     def _ReadRegistryRebootNumber(self):
@@ -79,19 +84,19 @@ class WPKGExecuter():
                 self._rebootnumber = _winreg.QueryValueEx(key, "RebootNumber")[0]
             except (WindowsError):
                 self._rebootnumber = 0
-                self._Log(R"Unable to read HKLM\SOFTWARE\WPKG-gp\RebootNumber, defaulting to 0", "info", 2)
+                logger.info(R"Unable to read HKLM\SOFTWARE\WPKG-gp\RebootNumber, defaulting to 0")
                 _winreg.SetValueEx(key, "RebootNumber", 0, _winreg.REG_DWORD, 0)
 
     def _IncrementRegistryRebootNumber(self):
         with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"Software\WPKG-gp", 0, _winreg.KEY_ALL_ACCESS) as key:
             rebootnumber = self._rebootnumber + 1
-            self._Log(R"Incrementing reboot number to %s" % rebootnumber, "info", 3)
+            logger.info(R"Incrementing reboot number to %s" % rebootnumber)
             _winreg.SetValueEx(key, "RebootNumber", 0, _winreg.REG_DWORD, rebootnumber)
 
     def _ResetRegistryRebootNumber(self):
         with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"Software\WPKG-gp", 0, _winreg.KEY_ALL_ACCESS) as key:
             rebootnumber = 0
-            self._Log(R"Resetting reboot number to 0", "info", 3)
+            logger.info(R"Resetting reboot number to 0")
             _winreg.SetValueEx(key, "RebootNumber", 0, _winreg.REG_DWORD, rebootnumber)
     
     def _getExecutable(self):
@@ -159,14 +164,14 @@ class WPKGExecuter():
             return self._formattedline
         
     def _Write(self, handle, line):
-        self._Log(R"Writing '%s' to pipe" % line, "info", 2)
+        logger.info(R"Writing '%s' to pipe" % line)
         if self.useWriteFile:
             try:
                 win32file.WriteFile(handle, line.encode('utf-8'))
                 return 1
             except win32file.error, (n, f, e):
                 if n == 232: #The pipe is being closed (in the other end)
-                    _Log("A client closed the pipe unexpectedly.", "warning", 1)
+                    logger.warning("A client closed the pipe unexpectedly.")
                     self.Cancel()
                     return 1
                 else:
@@ -174,16 +179,6 @@ class WPKGExecuter():
         else:
             handle.write(line + '\n')
             return 1
-
-    #Write to syslog
-    def _Log(self, message, type="info", verbosity=1):
-        if verbosity <= self.wpkg_verbosity:
-            if type == "info":
-                servicemanager.LogInfoMsg(message)
-            elif type == "warning":
-                servicemanager.LogWarningMsg(message)
-            elif type == "error":
-                servicemanager.LogErrorMsg(message)
 
     def _GetNetworkShare(self):
         #Extracting \\servername_or_ip_or_whatever\\sharename
@@ -201,26 +196,26 @@ class WPKGExecuter():
         
         username, password = WpkgNetworkUser.get_network_user()
         if username == "":
-            self._Log("No network user configured, continuing to connect as service user", "info", 3)
+            logger.info("No network user configured, continuing to connect as service user")
             return #Connect as the same user as the network
         else:
             try:
                 win32wnet.WNetAddConnection2(win32netcon.RESOURCETYPE_DISK, None, self.network_share, None, username, password, 0)
-                self._Log("Successfully connected to %s as %s" % (self.network_share, username), "info", 3)
+                logger.info("Successfully connected to %s as %s" % (self.network_share, username))
             except win32wnet.error, (n, f, e):
                 if n == 1326: #Logon failure
-                    self._Log("Could not log on the network with the username: %s\n The error was: %s Continuing to log on to share as service user" % (username, e), "error", 1)
+                    logger.error("Could not log on the network with the username: %s\n The error was: %s Continuing to log on to share as service user" % (username, e))
                 else:
                     raise
 
     def _DisconnectFromNetworkShare(self):
         try:
-            self._Log("Trying to disconnect from the network share %s" % self.network_share, "info", 3)
+            logger.info("Trying to disconnect from the network share %s" % self.network_share)
             win32wnet.WNetCancelConnection2(self.network_share, 1, True)
-            self._Log("Successfully disconnected from the network", "info", 3)
+            logger.info("Successfully disconnected from the network")
         except win32wnet.error, (n, f, e):
             if n == 2250: #This network connection does not exist
-                self._Log("Was not connected to the network", "info", 3)                
+                logger.info("Was not connected to the network") 
             else:
                 raise
                 
@@ -230,7 +225,7 @@ class WPKGExecuter():
         if not self.isrunning:
             executable = self._getExecutable()
             self.isrunning = 1
-            self._Log(R"Executing WPKG with the command %s" % executable, "info", 3)
+            logger.info(R"Executing WPKG with the command %s" % executable)
             
             #Open the network share as another user, if necessary
             if self._GetNetworkShare() != False:
@@ -238,10 +233,10 @@ class WPKGExecuter():
             
             self.proc = subprocess.Popen(executable, stdout=subprocess.PIPE, universal_newlines=True)
 
-            self._Log(R"Executed WPKG with the command %s" % executable, "info", 3)
+            logger.info(R"Executed WPKG with the command %s" % executable)
             while 1:
                 self.nextline = self.proc.stdout.readline()#.decode(sys.stdin.encoding)
-                self._Log(R"WPKG command returned: %s" % self.nextline, "info", 3)
+                logger.info(R"WPKG command returned: %s" % self.nextline)
                 self.lines.append(self.nextline)
                 if not self.nextline: #If it is the last line an empty line is returned from readline()
                     #We are finished for now
@@ -259,13 +254,13 @@ class WPKGExecuter():
                 self._DisconnectFromNetworkShare()
                 
             if exitcode == 1: #Cscript returned an error
-                self._Log(R"WPKG command returned an error: '%s'" % self.lines[-2], "error", 3)
+                logger.error(R"WPKG command returned an error: '%s'" % self.lines[-2])
                 self._Write(handle, "200 %s" % self.lines[-2])
                 return
                 
             
             if exitcode == 770560: #WPKG returns this when it requests a reboot
-                self._Log(R"WPKG requested a reboot", "info", 1)
+                logger.info(R"WPKG requested a reboot")
                 # Check how many reboots in a row
                 if self._rebootnumber >= self.wpkg_maxreboots:
                     self._Write(handle, "104 Installation requires a reboot, but the limit on maximum consecutive reboots (%i) is reached, so continuing." % self.wpkg_maxreboots)
@@ -292,7 +287,7 @@ class WPKGExecuter():
             else: #Not requiring a reboot, so continuing
                 self._ResetRegistryRebootNumber()
         else:
-            self._Log(R"Client requested WPKG to execute, but WPKG is already running", "info", 1)
+            logger.info(R"Client requested WPKG to execute, but WPKG is already running")
             msg = "201 WPKG is already running"
             self._Write(handle, msg)
 
@@ -312,7 +307,20 @@ class WPKGExecuter():
     
     def SetExecuteUser(self, username, password):
         WpkgNetworkUser.set_execute_user(username, password)
-                        
+
+
+
 if __name__=='__main__':
+    import sys
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")                        
+    h = logging.StreamHandler(sys.stdout)
+    h.setFormatter(formatter)
+    logger = logging.getLogger("WpkgServiceExecuter")
+    logger.addHandler(h)
+    logger.setLevel(logging.DEBUG)
     WPKG = WPKGExecuter()
     WPKG.Execute()
+else:
+    h = NullHandler()
+    logger = logging.getLogger("WpkgExecuter")
+    logger.addHandler(h)
