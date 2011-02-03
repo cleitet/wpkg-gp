@@ -1,15 +1,24 @@
 @echo off
 SET VERSION=0.9
-SET WIX="%ProgramFiles(x86)%\Windows Installer XML v3\bin"
-SET PYTHON32="c:\python26 (x86)\python.exe"
-SET PYTHON64="c:\python26 (x64)\python.exe"
+IF "%PROCESSOR_ARCHITECTURE%"=="x86" (
+  SET WIX="%ProgramFiles%\Windows Installer XML v3\bin"
+  SET PYTHON32="c:\python26\python.exe"
+) ELSE (
+  SET WIX="%ProgramFiles(x86)%\Windows Installer XML v3\bin"
+  SET PYTHON32="c:\python26 (x86)\python.exe"
+  SET PYTHON64="c:\python26 (x64)\python.exe"
+)
 
 cd %~dp0
 IF [%1]==[] GOTO error
 IF [%2]==[] GOTO error
 
 IF "%1"=="all" (
-  set ARCH=x86 x64
+  IF "%PROCESSOR_ARCHITECTURE%"=="x86" (
+    set ARCH=x86
+  ) ELSE (
+    set ARCH=x86 x64
+  )
 ) ELSE (
   set ARCH=%1
 )
@@ -48,7 +57,11 @@ GOTO :eof
 :make_py
   SETLOCAL
   SET ARCH=%1
-  "c:\python26 (%ARCH%)\python.exe" setup.py py2exe
+  if "ARCH"=="x86" (
+    %PYTHON32% setup.py py2exe
+  ) ELSE (
+    %PYTHON64% setup.py py2exe
+  )
   move dist dist-%ARCH%
   move build build-%ARCH%
   ENDLOCAL
