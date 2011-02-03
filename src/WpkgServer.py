@@ -38,7 +38,7 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
         self.overlapped = pywintypes.OVERLAPPED()
         self.overlapped.hEvent = CreateEvent(None,0,0,None)
         self.thread_handles = []
-        self.WPKGExecuter = WPKGExecuter.WPKGExecuter()
+        
         try:
             with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\policies\WPKG_GP") as key:
                 verbosity = int(_winreg.QueryValueEx(key, "WpkgVerbosity")[0])
@@ -64,8 +64,12 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
         handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=200000, backupCount="2")
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
+        WPKGExecuter.logger.removeHandler(WPKGExecuter.h)
+        WPKGExecuter.logger.addHandler(handler)
+        WPKGExecuter.logger.setLevel(log_level)
         self.logger.debug("Logging started")
         
+        self.WPKGExecuter = WPKGExecuter.WPKGExecuter()
     
     def CreatePipeSecurityObject(self):
         # Create a security object giving World read/write access,
