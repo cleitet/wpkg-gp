@@ -23,7 +23,7 @@
 
 
 //Globals
-bool DEBUG=false;
+bool DEBUG=true;
 int EXECUTE_FROM_GPE=FALSE;
 int EXECUTE_FROM_EXE=FALSE;
 PFNSTATUSMESSAGECALLBACK gStatusCallback = NULL;
@@ -114,25 +114,6 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
 	if(debug_flag)
 		DEBUG=true;
 
-	// Reading debug settings from registry
-	HKEY hKey = NULL;
-	DWORD dwDataType = REG_SZ;
-	DWORD dwSize = 0;
-	LPBYTE lpValue   = NULL;
-	
-	LONG lRet = RegOpenKeyExA(HKEY_LOCAL_MACHINE, "SOFTWARE\\Policies\\WPKG_GP", 0, KEY_QUERY_VALUE, &hKey);
-	lRet = RegQueryValueExA(hKey, "WpkgVerbosity", 0, &dwDataType, lpValue, &dwSize); // dwSize will contain the data size
-	// Allocate the buffer
-	lpValue = (LPBYTE) malloc(dwSize + 1);
-	lRet = RegQueryValueExA(hKey, "WpkgVerbosity", 0, &dwDataType, lpValue, &dwSize);
-	RegCloseKey(hKey);
-	// Adding null termination
-	lpValue[dwSize] = '\0';
-	if (atoi((LPSTR) lpValue) >= 3){
-		DEBUG=true;
-	}
-	free(lpValue);
-
 	if (called_by == GPE){
 		EXECUTE_FROM_GPE = TRUE;
 	}
@@ -218,6 +199,7 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
 
 	int i = 0;
 	// Check the status of the service
+	debug(L"Starting QueryServiceStatusEx\n");
 	if (!QueryServiceStatusEx( 
             schService,                     // handle to service 
             SC_STATUS_PROCESS_INFO,         // information level
@@ -231,8 +213,11 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
 			UpdateStatus(LOG_ERROR, L"Error when calling QueryServiceStatusEx", err);
 			return err; 
 	}
-	
-	 while (ssStatus.dwCurrentState != SERVICE_RUNNING) {
+
+	debug(L"Finished QueryServiceStatusEx\n");
+
+	debug(L"Checking the status of the service\n");
+	while (ssStatus.dwCurrentState != SERVICE_RUNNING) {
 		UpdateStatus(LOG_INFO, L"Waiting for the WPKG-GP software installation service to start.", FALSE);
 		debug(L"The current status was not SERVICE_RUNNING: %i, but %i, entering wait loop. i is %i (max 120)\n", SERVICE_RUNNING, ssStatus.dwCurrentState, i);
 		//Then wait for the service for maximum 120 seconds

@@ -11,3 +11,4 @@
 extern PFNSTATUSMESSAGECALLBACK gStatusCallback;
 void UpdateStatus(int status_type, wchar_t* message, int errorCode);
 DWORD executeWpkgViaPipe(int called_by, bool debug_flag);
+void debug(const wchar_t *format, ...);
