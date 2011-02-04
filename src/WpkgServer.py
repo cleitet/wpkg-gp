@@ -16,7 +16,7 @@ import servicemanager
 import WPKGExecuter
 import WpkgLGPUpdater
 import _winreg, logging, logging.handlers
-import os.path, shutil
+import os.path, sys
 
 MY_PIPE_NAME = r"\\.\pipe\WPKG"
 
@@ -39,11 +39,26 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
         self.overlapped.hEvent = CreateEvent(None,0,0,None)
         self.thread_handles = []
         
-        try:
-            with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\policies\WPKG_GP") as key:
+        with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\policies\WPKG_GP") as key:
+            try:
                 verbosity = int(_winreg.QueryValueEx(key, "WpkgVerbosity")[0])
-        except WindowsError:
-            verbosity = 1
+            except WindowsError:
+                verbosity = 1
+        with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\WPKG-GP") as key:
+            try:
+                self.logger = logging.getLogger("WpkgService")
+                install_path = _winreg.QueryValueEx(key, "InstallPath")[0]
+                logdir = os.path.join(install_path, "logs")
+                try:
+                    os.makedirs(logdir)
+                except WindowsError:
+                    pass
+                logfile = os.path.join(logdir, "WpkgService.log")
+                handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=200000, backupCount="2")
+            except WindowsError:
+                print "Could not read InstallPath from registry, logging to stdout"
+                handler = logging.StreamHandler(sys.stdout)
+        
         if verbosity == 3:
             log_level = logging.DEBUG
         elif verbosity == 2:
@@ -52,16 +67,11 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
             log_level = logging.ERROR
         else:
             log_level = logging.CRITICAL
-        self.logger = logging.getLogger("WpkgService")
-        logdir = os.path.join(os.path.dirname(__file__), "logs")
-        try:
-            os.makedirs(logdir)
-        except WindowsError:
-            pass
-        logfile = os.path.join(logdir, "WpkgServiceLog")
+
+        
         self.logger.setLevel(log_level)
         formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-        handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=200000, backupCount="2")
+        
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
         WPKGExecuter.logger.removeHandler(WPKGExecuter.h)
