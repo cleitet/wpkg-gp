@@ -79,32 +79,39 @@ Keep track of old ID's here:
           </Component>
         </Directory>
         <Component Id="WPKGClient" Guid="b26d4e48-43ae-4944-bc12-39c16375f89b">
-          <File Id='PythonLib_Win32SysLoader' DiskId='1' Name='_win32sysloader.pyd' Source='dist-$(sys.BUILDARCH)\_win32sysloader.pyd' />
-          <File Id='PythonLibBz2'             DiskId='1' Name='bz2.pyd'             Source='dist-$(sys.BUILDARCH)\bz2.pyd' />
-          <File Id='PythonLibLibrary'         DiskId='1' Name='library.zip'         Source='dist-$(sys.BUILDARCH)\library.zip' />
-          <File Id='PythonLibPerfMon'         DiskId='1' Name='perfmon.pyd'         Source='dist-$(sys.BUILDARCH)\perfmon.pyd' />
-          <File Id='Python26Dll'              DiskId='1' Name='python26.dll'        Source='dist-$(sys.BUILDARCH)\python26.dll' />
-          <File Id='PyWinTypes26Dll'          DiskId='1' Name='pywintypes26.dll'    Source='dist-$(sys.BUILDARCH)\pywintypes26.dll' />
-          <File Id='PythonLibSelect'          DiskId='1' Name='select.pyd'          Source='dist-$(sys.BUILDARCH)\select.pyd' />
-          <File Id='PythonLibServiceManager'  DiskId='1' Name='servicemanager.pyd'  Source='dist-$(sys.BUILDARCH)\servicemanager.pyd'/>
-          <File Id='PythonLibUnicodeData'     DiskId='1' Name='unicodedata.pyd'     Source='dist-$(sys.BUILDARCH)\unicodedata.pyd' />
-          <File Id='PythonLibWin32API'        DiskId='1' Name='win32api.pyd'        Source='dist-$(sys.BUILDARCH)\win32api.pyd' />
-          <File Id='PythonLibWin32Event'      DiskId='1' Name='win32event.pyd'      Source='dist-$(sys.BUILDARCH)\win32event.pyd' />
-          <File Id='PythonLibWin32EvtLog'     DiskId='1' Name='win32evtlog.pyd'     Source='dist-$(sys.BUILDARCH)\win32evtlog.pyd' />
-          <File Id='PythonLibWin32File'       DiskId='1' Name='win32file.pyd'       Source='dist-$(sys.BUILDARCH)\win32file.pyd' />
-          <File Id='PythonLibWin32Pipe'       DiskId='1' Name='win32pipe.pyd'       Source='dist-$(sys.BUILDARCH)\win32pipe.pyd' />
-          <File Id='PythonLibWin32Security'   DiskId='1' Name='win32security.pyd'   Source='dist-$(sys.BUILDARCH)\win32security.pyd' />
-          <File Id='PythonLibWin32Client'     DiskId='1' Name='win32service.pyd'    Source='dist-$(sys.BUILDARCH)\win32service.pyd' />
-          <File Id='PythonLibWin32Crypt'      DiskId='1' Name='win32crypt.pyd'      Source='dist-$(sys.BUILDARCH)\win32crypt.pyd' />
-          <File Id='PythonLibWin32Wnet'       DiskId='1' Name='win32wnet.pyd'       Source='dist-$(sys.BUILDARCH)\win32wnet.pyd' />
-          <File Id='WPKGClientWpkgPipeClient' DiskId='1' Name='WpkgPipeClient.exe'  Source='dist-$(sys.BUILDARCH)\WpkgPipeClient.exe' />
-          <?if $(sys.BUILDARCH) = "x86" ?>
-          <File Id='W9xPopen'                 DiskId='1' Name='w9xpopen.exe'        Source='dist-$(sys.BUILDARCH)\w9xpopen.exe' />
-          <?elseif $(sys.BUILDARCH) = "x64" ?>
-          <File Id='MSWSOCK'                  DiskId='1' Name='MSWSOCK.dll'         Source='dist-$(sys.BUILDARCH)\MSWSOCK.dll' />
-          <File Id='POWRPROF'                 DiskId='1' Name='POWRPROF.dll'        Source='dist-$(sys.BUILDARCH)\POWRPROF.dll' />
-          <File Id='CRYPT32'                  DiskId='1' Name='CRYPT32.dll' Source='dist-$(sys.BUILDARCH)\CRYPT32.dll' />
-          <File Id='MSASN1'                   DiskId='1' Name='MSASN1.dll' Source='dist-$(sys.BUILDARCH)\MSASN1.dll' />
+
+          <File Id='_hashlib.pyd' DiskId='1' Name='_hashlib.pyd' Source='dist-$(sys.BUILDARCH)\_hashlib.pyd' />
+          <File Id='_socket.pyd' DiskId='1' Name='_socket.pyd' Source='dist-$(sys.BUILDARCH)\_socket.pyd' />
+          <File Id='_ssl.pyd' DiskId='1' Name='_ssl.pyd' Source='dist-$(sys.BUILDARCH)\_ssl.pyd' />
+          <File Id='_win32sysloader.pyd' DiskId='1' Name='_win32sysloader.pyd' Source='dist-$(sys.BUILDARCH)\_win32sysloader.pyd' />
+          <File Id='bz2.pyd' DiskId='1' Name='bz2.pyd' Source='dist-$(sys.BUILDARCH)\bz2.pyd' />
+          <File Id='library.zip' DiskId='1' Name='library.zip' Source='dist-$(sys.BUILDARCH)\library.zip' />
+          <File Id='perfmon.pyd' DiskId='1' Name='perfmon.pyd' Source='dist-$(sys.BUILDARCH)\perfmon.pyd' />
+          <File Id='python26.dll' DiskId='1' Name='python26.dll' Source='dist-$(sys.BUILDARCH)\python26.dll' />
+          <File Id='pywintypes26.dll' DiskId='1' Name='pywintypes26.dll' Source='dist-$(sys.BUILDARCH)\pywintypes26.dll' />
+          <File Id='select.pyd' DiskId='1' Name='select.pyd' Source='dist-$(sys.BUILDARCH)\select.pyd' />
+          <File Id='servicemanager.pyd' DiskId='1' Name='servicemanager.pyd' Source='dist-$(sys.BUILDARCH)\servicemanager.pyd' />
+          <File Id='unicodedata.pyd' DiskId='1' Name='unicodedata.pyd' Source='dist-$(sys.BUILDARCH)\unicodedata.pyd' />
+          <File Id='win32api.pyd' DiskId='1' Name='win32api.pyd' Source='dist-$(sys.BUILDARCH)\win32api.pyd' />
+          <File Id='win32crypt.pyd' DiskId='1' Name='win32crypt.pyd' Source='dist-$(sys.BUILDARCH)\win32crypt.pyd' />
+          <File Id='win32event.pyd' DiskId='1' Name='win32event.pyd' Source='dist-$(sys.BUILDARCH)\win32event.pyd' />
+          <File Id='win32evtlog.pyd' DiskId='1' Name='win32evtlog.pyd' Source='dist-$(sys.BUILDARCH)\win32evtlog.pyd' />
+          <File Id='win32file.pyd' DiskId='1' Name='win32file.pyd' Source='dist-$(sys.BUILDARCH)\win32file.pyd' />
+          <File Id='win32pipe.pyd' DiskId='1' Name='win32pipe.pyd' Source='dist-$(sys.BUILDARCH)\win32pipe.pyd' />
+          <File Id='win32security.pyd' DiskId='1' Name='win32security.pyd' Source='dist-$(sys.BUILDARCH)\win32security.pyd' />
+          <File Id='win32service.pyd' DiskId='1' Name='win32service.pyd' Source='dist-$(sys.BUILDARCH)\win32service.pyd' />
+          <File Id='win32wnet.pyd' DiskId='1' Name='win32wnet.pyd' Source='dist-$(sys.BUILDARCH)\win32wnet.pyd' />
+          <File Id='WpkgPipeClient.exe' DiskId='1' Name='WpkgPipeClient.exe' Source='dist-$(sys.BUILDARCH)\WpkgPipeClient.exe' />
+          <?if $(sys.BUILDARCH) = "x64" ?>
+          <File Id='CFGMGR32.dll' DiskId='1' Name='CFGMGR32.dll' Source='dist-$(sys.BUILDARCH)\CFGMGR32.dll' />
+          <File Id='CRYPT32.dll' DiskId='1' Name='CRYPT32.dll' Source='dist-$(sys.BUILDARCH)\CRYPT32.dll' />
+          <File Id='DEVOBJ.dll' DiskId='1' Name='DEVOBJ.dll' Source='dist-$(sys.BUILDARCH)\DEVOBJ.dll' />
+          <File Id='KERNELBASE.dll' DiskId='1' Name='KERNELBASE.dll' Source='dist-$(sys.BUILDARCH)\KERNELBASE.dll' />
+          <File Id='MPR.dll' DiskId='1' Name='MPR.dll' Source='dist-$(sys.BUILDARCH)\MPR.dll' />
+          <File Id='MSASN1.dll' DiskId='1' Name='MSASN1.dll' Source='dist-$(sys.BUILDARCH)\MSASN1.dll' />
+          <File Id='MSWSOCK.dll' DiskId='1' Name='MSWSOCK.dll' Source='dist-$(sys.BUILDARCH)\MSWSOCK.dll' />
+          <File Id='POWRPROF.dll' DiskId='1' Name='POWRPROF.dll' Source='dist-$(sys.BUILDARCH)\POWRPROF.dll' />
+          <File Id='SETUPAPI.dll' DiskId='1' Name='SETUPAPI.dll' Source='dist-$(sys.BUILDARCH)\SETUPAPI.dll' />
           <?endif ?>
         </Component>
         <Component Id='WPKGService' Guid='f86f943e-bd60-45aa-a425-e42f1a49ca1b'>
@@ -150,6 +157,9 @@ Keep track of old ID's here:
           <RegistryKey Id='SystemPoliciesKey' Root='HKLM' Key='SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' Action='create'>
             <RegistryValue Id='VerboseStatusValue' Name='verbosestatus' Action='write' Type='integer' Value='[REGSAVEVERBOSEBOOT]' />
             <RegistryValue Id='DisableMessagesValue' Name='DisableStatusMessages' Action='write' Type='integer' Value='[REGSAVEDISABLEBOOTMESSAGES]' />
+          </RegistryKey>
+          <RegistryKey Id='WinlogonKey' Root='HKLM' Key='SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' Action='create'>
+            <RegistryValue Id='SyncForegroundPolicy' Name='SyncForegroundPolicy' Action='write' Type='integer' Value='1' />
           </RegistryKey>
         </Component>
       </Directory>
@@ -287,7 +297,7 @@ Keep track of old ID's here:
                 Impersonate="no" Return="asyncNoWait" />
                 
   <CustomAction Id="UpdateNetworkUser_CMD" Property="UpdateNetworkUser"
-                Value='"[#WPKGClientWpkgPipeClient]" SetNetworkUser [NETWORKUSERNAME] [NETWORKPASSWORD]'
+                Value='"[#WpkgPipeClient.exe]" SetNetworkUser [NETWORKUSERNAME] [NETWORKPASSWORD]'
                 Execute="immediate" />
   <?if $(sys.BUILDARCH) = "x64" ?>
     <CustomAction Id="UpdateNetworkUser" BinaryKey="WixCA" DllEntry="CAQuietExec64" Execute="deferred" Return="ignore" Impersonate="no" />
@@ -296,7 +306,7 @@ Keep track of old ID's here:
   <?endif ?>
   
   <CustomAction Id="AddToLGP_CMD" Property="AddToLGP"
-                Value='"[#WPKGClientWpkgPipeClient]" EnableViaLGP add'
+                Value='"[#WpkgPipeClient.exe]" EnableViaLGP add'
                 Execute="immediate" />
   <?if $(sys.BUILDARCH) = "x64" ?>
     <CustomAction Id="AddToLGP" BinaryKey="WixCA" DllEntry="CAQuietExec64" Execute="deferred" Return="ignore" Impersonate="no" />
