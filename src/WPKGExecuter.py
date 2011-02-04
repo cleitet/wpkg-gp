@@ -13,8 +13,7 @@ import thread
 import os
 import WpkgNetworkUser
 import win32wnet, win32netcon
-import logging
-import shlex
+import logging, csv
 
 class NullHandler(logging.Handler):
     def emit(self, record):
@@ -103,12 +102,14 @@ class WPKGExecuter():
             commandstring = self.wpkg_execute_command
         commandstring = os.path.expandvars(commandstring) #Expanding variables
         #check if starts with cscript and contains /noReboot /synchronize and/or /sendStatus is in command. If not, add it.
-        #if not, ignore it
-        commandlist = commandstring.split(" ")
+        
+        # Using csv module "hack" to split the commandstring since shlex does not work with unicode strings
+        # And we want to be able to parse escaped strings like 'cscript "path to file" /switch'
+        commandlist = csv.reader([commandstring], delimiter=" ").next()
         is_js_script = False
-        flags = []
-        if commandlist[0][:-3] == ".js" or commandlist[0].lower() == "cscript":
-                is_js_script = True
+        
+        if commandlist[0].lower() == "cscript" or commandlist[0][-3:].lower()==".js":
+           is_js_script = True
         if is_js_script == True:
             if commandlist[0].lower() != "cscript":
                 logger.debug("WpkgCommand is a js file but is missing 'cscript', adding")
