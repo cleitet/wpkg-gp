@@ -114,8 +114,8 @@ class WPKGExecuter():
             if commandlist[0].lower() != "cscript":
                 logger.debug("WpkgCommand is a js file but is missing 'cscript', adding")
                 commandlist.insert(0, "cscript")
-            if not "/noReboot" in commandlist:
-                logger.debug("WpkgCommand is a js but is missing /noReboot, adding")
+            if not "/noreboot" in commandlist:
+                logger.debug("WpkgCommand is a js but is missing /noreboot, adding")
                 commandlist.append("/noReboot")
             if not "/synchronize" in commandlist:
                 logger.debug("WpkgCommand is a js but is missing /synchronize, adding")
