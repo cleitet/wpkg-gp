@@ -101,7 +101,7 @@ class WPKGExecuter():
         if commandstring == False:
             commandstring = self.wpkg_execute_command
         commandstring = os.path.expandvars(commandstring) #Expanding variables
-        #check if starts with cscript and contains /noReboot /synchronize and/or /sendStatus is in command. If not, add it.
+        #check if starts with cscript and contains /noreboot /synchronize and/or /sendStatus is in command. If not, add it.
         
         # Using csv module "hack" to split the commandstring since shlex does not work with unicode strings
         # And we want to be able to parse escaped strings like 'cscript "path to file" /switch'
@@ -116,7 +116,7 @@ class WPKGExecuter():
                 commandlist.insert(0, "cscript")
             if not "/noreboot" in commandlist:
                 logger.debug("WpkgCommand is a js but is missing /noreboot, adding")
-                commandlist.append("/noReboot")
+                commandlist.append("/noreboot")
             if not "/synchronize" in commandlist:
                 logger.debug("WpkgCommand is a js but is missing /synchronize, adding")
                 commandlist.append("/synchronize")
