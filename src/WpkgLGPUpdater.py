@@ -18,6 +18,8 @@ import win32api
 import os.path
 import ConfigParser
 import sys, os
+import WpkgConfig
+import _winreg
 
 
 WPKGGPGUID = '{A9B8D792-F454-11DE-BA92-FDCF56D89593}'
@@ -100,10 +102,28 @@ class WpkgLocalGPConfigurator:
         for line in lines:
             file.write(line)
         file.close()
+    def update(self):
+        try:
+            with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"SOFTWARE\Wpkg-GP", 0, _winreg.KEY_READ) as key:
+                current_setting = _winreg.QueryValueEx(key, "EnableViaLGP")[0]
+        except WindowsError:
+            current_setting = None
+        config = WpkgConfig.WpkgConfig()
+        EnableViaLGP = config.get("EnableViaLGP")
+        if EnableViaLGP != current_setting:
+            if EnableViaLGP == 1:
+                self.addToLocalPolicies()
+            else:
+                self.removeFromLocalPolicies()
+
+            with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"Software\WPKG-gp", 0, _winreg.KEY_ALL_ACCESS) as key:
+                _winreg.SetValueEx(key, "EnableViaLGP", 0, _winreg.REG_DWORD, EnableViaLGP)
+                
+            
 
 def usage():
     my_name = os.path.split(sys.argv[0])[1]
-    print("Usage: %s add|remove Add or removes WPKG-GP GPE from local Group Policies" % my_name)
+    print("Usage: %s add|remove|update Add or removes WPKG-GP GPE from local Group Policies" % my_name)
 def main():
     try:
         if sys.argv[1] == "add":
@@ -114,6 +134,10 @@ def main():
             wpkggp = WpkgLocalGPConfigurator()
             wpkggp.removeFromLocalPolicies()
             return
+        elif sys.argv[1] == "update":
+            wpkggp = WpkgLocalGPConfigurator()
+            wpkggp.update()
+            return
         else:
             usage()
             return
@@ -121,5 +145,6 @@ def main():
         usage()
         return
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     main()

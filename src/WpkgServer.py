@@ -1,4 +1,4 @@
-# A Demo of services and named pipes.
+# Service controlling Wpkg-GP
 
 # A multi-threaded service that executes WPKG.js and prompts
 # returns it's output via a named pipe
@@ -13,8 +13,9 @@ from ntsecuritycon import *
 import traceback
 import thread
 import servicemanager
-import WPKGExecuter
+import WpkgExecuter
 import WpkgLGPUpdater
+import WpkgConfig
 import _winreg, logging, logging.handlers
 import os.path, sys
 
@@ -38,26 +39,21 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
         self.overlapped = pywintypes.OVERLAPPED()
         self.overlapped.hEvent = CreateEvent(None,0,0,None)
         self.thread_handles = []
+
+        self.config = WpkgConfig.WpkgConfig()
         
-        with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\policies\WPKG_GP") as key:
-            try:
-                verbosity = int(_winreg.QueryValueEx(key, "WpkgVerbosity")[0])
-            except WindowsError:
-                verbosity = 1
-        with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\WPKG-GP") as key:
-            try:
-                self.logger = logging.getLogger("WpkgService")
-                install_path = _winreg.QueryValueEx(key, "InstallPath")[0]
-                logdir = os.path.join(install_path, "logs")
-                try:
-                    os.makedirs(logdir)
-                except WindowsError:
-                    pass
-                logfile = os.path.join(logdir, "WpkgService.log")
-                handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=200000, backupCount="2")
-            except WindowsError:
-                print "Could not read InstallPath from registry, logging to stdout"
-                handler = logging.StreamHandler(sys.stdout)
+        verbosity = self.config.get("WpkgVerbosity")
+        install_path = self.config.install_path
+        
+        self.logger = logging.getLogger("WpkgService")
+        logdir = os.path.join(install_path, "logs")
+
+        try:
+            os.makedirs(logdir)
+        except WindowsError:
+            pass
+        logfile = os.path.join(logdir, "WpkgService.log")
+        handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=200000, backupCount="2")
         
         if verbosity == 3:
             log_level = logging.DEBUG
@@ -67,19 +63,19 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
             log_level = logging.ERROR
         else:
             log_level = logging.CRITICAL
-
+        print verbosity
         
         self.logger.setLevel(log_level)
-        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-        
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")        
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
-        WPKGExecuter.logger.removeHandler(WPKGExecuter.h)
-        WPKGExecuter.logger.addHandler(handler)
-        WPKGExecuter.logger.setLevel(log_level)
-        self.logger.debug("Logging started")
+        self.logger.critical("Logging started with log_level: %i" % log_level)
+
+        # Enable/Disable LGP
+        LGP_handler = WpkgLGPUpdater.WpkgLocalGPConfigurator()
+        LGP_handler.update()
         
-        self.WPKGExecuter = WPKGExecuter.WPKGExecuter()
+        self.WpkgExecuter = WpkgExecuter.WpkgExecuter()
     
     def CreatePipeSecurityObject(self):
         # Create a security object giving World read/write access,
@@ -121,74 +117,18 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
             # A secure service would handle (and ignore!) errors writing to the
             # pipe
             if ok:
-                if self.WPKGExecuter.getStatus() != "OK":
-                    msg = "200 " + self.WPKGExecuter.getStatus()
+                if self.WpkgExecuter.is_running:
+                    msg = "200 " + self.WpkgExecuter.getStatus()
                     self.logger.info("Wpkg Executer is not ready. Returning '%s' to client." % msg)
                     servicemanager.LogErrorMsg(msg)
                     WriteFile(pipeHandle, msg.encode('ascii'))
                 else:	
                     if d == b"Execute":
                         self.logger.info("Received 'Execute', executing WPKG")
-                        self.WPKGExecuter.Execute(pipeHandle, useWriteFile=True)
+                        self.WpkgExecuter.Execute(pipeHandle)
                     elif d == b"Cancel":
                         self.logger.info("Received 'Cancel', cancelling WPKG")
-                        self.WPKGExecuter.Cancel(pipeHandle, useWriteFile=True)
-                    elif d.split(" ")[0] == b"SetNetworkUser":
-                        self.logger.info("Received 'SetNetworkUser', configuring the network user")
-                        try:
-                            username = d.split(" ")[1]
-                            password = d.split(" ")[2]
-                            self.WPKGExecuter.SetNetworkUser(username, password)
-                            msg = "100 Successfully updated NetworkUser"
-                            self.logger.info("Sending '%s' to client" % msg)
-                            WriteFile(pipeHandle, msg.encode('ascii'))
-                        except Exception as e:
-                            msg = "200 Error when updating NetworkUser: %s" % e
-                            self.logger.info("Sending '%s' to client" % msg)
-                            WriteFile(pipeHandle, msg.encode('ascii'))
-                            raise
-                    elif d.split(" ")[0] == b"SetExecuteUser":
-                        try:
-                            username = d.split(" ")[1]
-                            password = d.split(" ")[2]
-                            self.WPKGExecuter.SetExecuteUser(username, password)
-                            msg = "100 Successfully updated ExecuteUser"
-                            self.logger.info("Sending '%s' to client" % msg)
-                            WriteFile(pipeHandle, msg.encode('ascii'))
-                        except Exception as e:
-                            msg = "200 Error when updating ExecuteUser: %s" % e
-                            self.logger.info("Sending '%s' to client" % msg)
-                            WriteFile(pipeHandle, msg.encode('ascii'))
-                            raise
-                    elif d.split(" ")[0] == b"EnableViaLGP":
-                        try:
-                            action = d.split(" ")[1]
-                            wpkggp = WpkgLGPUpdater.WpkgLocalGPConfigurator()
-                            if action == "add":
-                                wpkggp.addToLocalPolicies()
-                                msg = "100 Successfully added to LGP"
-                                self.logger.info("Sending '%s' to client" % msg)
-                                WriteFile(pipeHandle, msg.encode('ascii'))
-                            elif action == "remove":
-                                wpkggp.removeFromLocalPolicies()
-                                msg = "100 Successfully removed from LGP"
-                                self.logger.info("Sending '%s' to client" % msg)
-                                WriteFile(pipeHandle, msg.encode('ascii'))
-                            else:
-                                msg = "200 Error when trying to EnableViaLGP %s" % e
-                                self.logger.info("Sending '%s' to client" % msg)
-                                WriteFile(pipeHandle, msg.encode('ascii'))
-                        except IndexError:
-                            msg = "200 You need to run EnableViaLGP add|remove"
-                            self.logger.info("Sending '%s' to client" % msg)
-                            WriteFile(pipeHandle, msg.encode('ascii'))
-                            raise
-                        except Exception as e:
-                            msg = "200 Error when trying to EnableViaLGP %s" % e
-                            self.logger.info("Sending '%s' to client" % msg)
-                            WriteFile(pipeHandle, msg.encode('ascii'))
-                            raise
-                        
+                        self.WpkgExecuter.Cancel(pipeHandle)                       
                     else:
                         msg = "203 Unknown command: %s" % d
                         self.logger.info("Sending '%s' to client" % msg)

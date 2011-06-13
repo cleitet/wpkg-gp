@@ -13,20 +13,6 @@ CATEGORY "WPKG"
 			VALUENAME "WpkgPath"
 		END PART
 
-		PART !!WpkgParametersTip1 TEXT
-		END PART
-		PART !!WpkgParametersTip2 TEXT
-		END PART
-		PART !!WpkgParametersTip3 TEXT
-		END PART
-		PART !!WpkgParametersTip4 TEXT
-		END PART
-		PART !!WpkgParametersTip5 TEXT
-		END PART
-		PART "WPKG Parameters" EDITTEXT DEFAULT "/synchronize /sendStatus /nonotify"
-			ValueName "WpkgParameters"
-		END PART
-
 		PART !!WpkgVerbosityTip1 TEXT
 		END PART
 		PART "WPKG-gp Verbosity" NUMERIC DEFAULT 0 MIN 0 MAX 3 TXTCONVERT
@@ -46,8 +32,8 @@ END CATEGORY
 
 [Strings]
 PolHelp="Configures settings for WPKG-GP, a utility for running WPKG as a group policy. See http://wpkg-gp.googlecode.com/ for more info."
-WpkgPathTip1="The path to your wpkg.js or cmd/bat script for starting wpkg."
-WpkgPathTip2="Please note that you should never add /noReboot here, or in the cmd script, as WPKG-GP adds it itself."
+WpkgPathTip1="The path to your wpkg.js or cmd/bat script for starting WPKG."
+WpkgPathTip2="If you add"
 
 WpkgParametersTip1="Eventual parameters to wpkg, if you are call a cmd script, they"
 WpkgParametersTip2="would be in your cmd file, and this field should be empty."
