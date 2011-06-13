@@ -56,7 +56,7 @@ Var /GLOBAL INI
 !include "setup\include\move-${PLATFORM}.nsi"
 !include "setup\include\delete-${PLATFORM}.nsi"
 
-!insertmacro MUI_PAGE_LICENSE "installer\License.rtf"
+!insertmacro MUI_PAGE_LICENSE "setup\License.rtf"
 !insertmacro MUI_PAGE_COMPONENTS
 Page custom WpkgSettingsPage WpkgSettingsPageCallback
 Page custom GroupPolicySettingsPage GroupPolicySettingsPageCallback
@@ -423,6 +423,8 @@ Section "Wpkg-GP Client" Section1
 SectionEnd
 
 Section "Wpkg-GP Administrative Template for Group Policies" Section2
+  SetOutPath $WINDIR\INF
+  File src\Wpkg-GP.adm
 SectionEnd
 
 # For Modern UI tooltips
@@ -467,6 +469,7 @@ section "uninstall"
   Delete $INSTDIR\wpkg-gp.ini
   Delete $INSTDIR\install.log
   Delete $INSTDIR\Default_Wpkg-GP.ini
+  Delete $WINDIR\INF\Wpkg-GP.adm
   RMDir /r $INSTDIR\Logs
   RMDir /r $INSTDIR\Microsoft.VC90.CRT
   RMDir /r $INSTDIR\New

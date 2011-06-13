@@ -1,4 +1,4 @@
-@echo off
+rem @echo off
 SET VERSION=0.11
 IF "%PROCESSOR_ARCHITECTURE%"=="x86" (
   SET NSIS="%ProgramFiles%\NSIS\makensis.exe"
@@ -56,7 +56,7 @@ GOTO :eof
 :make_py
   SETLOCAL
   SET ARCH=%1
-  if "ARCH"=="x86" (
+  if "%ARCH%"=="x86" (
     %PYTHON32% setup.py py2exe
   ) ELSE (
     %PYTHON64% setup.py py2exe
