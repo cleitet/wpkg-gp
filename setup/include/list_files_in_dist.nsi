@@ -36,7 +36,6 @@ Section
   FileWrite $2 "Function F_Move$\r$\n"
   FileWrite $3 "Function un.F_Delete$\r$\n"
   
-  FileRead $0 $4
   ${DoUntil} ${Errors}
     FileRead $0 $4
     ${If} $4 == ""

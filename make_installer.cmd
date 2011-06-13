@@ -1,4 +1,4 @@
-rem @echo off
+@echo off
 SET VERSION=0.11
 IF "%PROCESSOR_ARCHITECTURE%"=="x86" (
   SET NSIS="%ProgramFiles%\NSIS\makensis.exe"

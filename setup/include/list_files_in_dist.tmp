@@ -6,21 +6,19 @@ _socket.pyd
 API-MS-Win-Core-Misc-L1-1-0.dll
 API-MS-Win-Core-IO-L1-1-0.dll
 API-MS-Win-Core-LocalRegistry-L1-1-0.dll
+API-MS-Win-Core-Interlocked-L1-1-0.dll
 API-MS-Win-Core-ProcessEnvironment-L1-1-0.dll
-MSASN1.dll
 API-MS-Win-Core-Profile-L1-1-0.dll
 POWRPROF.dll
 library.zip
 win32file.pyd
+w9xpopen.exe
 MPR.dll
 python26.dll
 pywintypes26.dll
 win32security.pyd
-CRYPT32.dll
 API-MS-Win-Core-Localization-L1-1-0.dll
 servicemanager.pyd
-CFGMGR32.dll
-SETUPAPI.dll
 API-MS-Win-Core-String-L1-1-0.dll
 API-MS-Win-Core-ErrorHandling-L1-1-0.dll
 API-MS-Win-Core-Synch-L1-1-0.dll
@@ -28,7 +26,6 @@ _ssl.pyd
 win32event.pyd
 win32crypt.pyd
 API-MS-Win-Core-ProcessThreads-L1-1-0.dll
-KERNELBASE.dll
 win32api.pyd
 bz2.pyd
 unicodedata.pyd
@@ -45,5 +42,4 @@ API-MS-Win-Security-Base-L1-1-0.dll
 API-MS-Win-Core-LibraryLoader-L1-1-0.dll
 API-MS-Win-Core-Handle-L1-1-0.dll
 perfmon.pyd
-DEVOBJ.dll
 win32pipe.pyd
