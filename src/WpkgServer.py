@@ -63,13 +63,12 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
             log_level = logging.ERROR
         else:
             log_level = logging.CRITICAL
-        print verbosity
         
         self.logger.setLevel(log_level)
         formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")        
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
-        self.logger.critical("Logging started with log_level: %i" % log_level)
+        self.logger.info("Logging started with verbosity: %i" % verbosity)
 
         # Enable/Disable LGP
         LGP_handler = WpkgLGPUpdater.WpkgLocalGPConfigurator()
