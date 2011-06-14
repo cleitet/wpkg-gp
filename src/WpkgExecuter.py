@@ -137,5 +137,5 @@ if __name__=='__main__':
     WPKG.Execute()
 else:
     h = NullHandler()
-    logger = logging.getLogger("WpkgExecuter")
+    logger = logging.getLogger("WpkgService")
     logger.addHandler(h)
