@@ -56,6 +56,10 @@ Var /GLOBAL INI
 !include "setup\include\move-${PLATFORM}.nsi"
 !include "setup\include\delete-${PLATFORM}.nsi"
 
+
+!define MUI_UNICON "setup\wpkg-gp.ico"
+!define MUI_FINISHPAGE_NOAUTOCLOSE
+!define MUI_UNFINISHPAGE_NOAUTOCLOSE
 !insertmacro MUI_PAGE_LICENSE "setup\License.rtf"
 !insertmacro MUI_PAGE_COMPONENTS
 Page custom WpkgSettingsPage WpkgSettingsPageCallback
@@ -64,6 +68,11 @@ Page custom NetworkUserPage NetworkUserPageCallback
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
+
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_UNPAGE_FINISH
+
 !insertmacro MUI_LANGUAGE "English"
 
 Function WpkgSettingsPage
@@ -114,6 +123,7 @@ Icon "setup\wpkg-gp.ico"
 OutFile "Wpkg-GP-${VERSION}_${PLATFORM}.exe"
 XpStyle On
 RequestExecutionLevel admin
+Name "${PRODUCT_NAME}"
 
 VIAddVersionKey "ProductName" "${PRODUCT_NAME}"
 VIAddVersionKey "Comments" "${PRODUCT_DESCRIPTION}"
@@ -270,19 +280,20 @@ Section "Wpkg-GP Client" Section1
   Delete "$INSTDIR\install.log"
   LogSet on
   
-  LogText "Installed version of ${PRODUCT_NAME} is: $PreviousVersion"
+  DetailPrint "Installed version of ${PRODUCT_NAME} is: $PreviousVersion"
 
-  ${If} $IsUpgrade == 1
-    LogText "Attempting to stop WpkgServer"
+# Does not work on service upgrading itself
+#  ${If} $IsUpgrade == 1
+#    DetailPrint "Attempting to stop WpkgServer"
 #    nsExec::ExecToStack "net stop WpkgServer"
-    LogText "Command Returned:"
-    ClearErrors
-    Pop $0
-    ${DoUntil} ${Errors}
-      LogText "$0"
-      Pop $0
-    ${LoopUntil} 0 = 1
-  ${EndIf}
+#    LogText "Command Returned:"
+#    ClearErrors
+#    Pop $0
+#    ${DoUntil} ${Errors}
+#      LogText "$0"
+#      Pop $0
+#    ${LoopUntil} 0 = 1
+#  ${EndIf}
   
   # Install files
   SetOutPath $INSTDIR
@@ -297,17 +308,17 @@ Section "Wpkg-GP Client" Section1
   SetOutPath $INSTDIR
 
   # Install Redist components
-  LogText "Installing Redist components"
+  DetailPrint "Installing Redist components"
   ClearErrors
   ${If} ${PLATFORM} == "x86"
     ReadRegStr $0 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{196BB40D-1578-3D01-B289-BEFC77A11A1E}" DisplayVersion
   ${Else}
     ReadRegStr $0 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{DA5E371C-6333-3D8A-93A4-6FD5B20BCC6E}" DisplayVersion
   ${EndIf}
-  LogText "Installed version of Redist components is: $0"
+  DetailPrint "Installed version of Redist components is: $0"
   
   ${If} ${Errors} # Not installed
-    LogText "Redist components are not installed, installing"
+    DetailPrint "Redist components are not installed, installing"
     SetOutPath $INSTDIR\VC++2010Redist
     File  redist\VC100\vcredist_${PLATFORM}.exe
 
@@ -321,52 +332,52 @@ Section "Wpkg-GP Client" Section1
     #Clear error
     ClearErrors
   ${Else}
-    LogText "Redist components are already installed"
+    DetailPrint "Redist components are already installed"
   ${EndIf}
 
   SetOutPath "$INSTDIR"
   ${If} IsUpgrade == 0
     ${If} $INI == ""
-      LogText "This is a new install, and no /INI provided. Will use default Wpkg-GP.ini file"
+      DetailPrint "This is a new install, and no /INI provided. Will use default Wpkg-GP.ini file"
       File "Wpkg-GP.ini"
     ${Else}
-      LogText "This is a new install, and /INI is $INI. Will use the provided file."
+      DetailPrint "This is a new install, and /INI is $INI. Will use the provided file."
       CopyFiles /SILENT $INI $INSTDIR
       File /oname=Default_Wpkg-GP.ini "Wpkg-GP.ini"
     ${EndIf}
   ${Else}
     ${If} $INI == ""
-      LogText "This is a upgrade, and no /INI is provided, checking for an existing Wpkg-GP.ini file."
+      DetailPrint "This is a upgrade, and no /INI is provided, checking for an existing Wpkg-GP.ini file."
       ${If} ${FileExists} $INSTDIR\Wpkg-GP.ini
-        LogText "File exists, will keep it"
+        DetailPrint "File exists, will keep it"
         File /oname=Default_Wpkg-GP.ini "Wpkg-GP.ini"
       ${Else}
-        LogText "No INI file found, will use the default one."
+        DetailPrint "No INI file found, will use the default one."
         File "Wpkg-GP.ini"
       ${EndIf}
     ${Else}
-      LogText "This is a upgrade, and /INI is $INI, will use this file."
+      DetailPrint "This is a upgrade, and /INI is $INI, will use this file."
       CopyFiles /SILENT $INI $INSTDIR
       File /oname=Default_Wpkg-GP.ini "Wpkg-GP.ini"
     ${EndIf}
   ${EndIf}
   
   #Updating .ini file
-  LogText "Updating Wpkg-GP.ini with settings provided through the installer interface."
+  DetailPrint "Updating Wpkg-GP.ini with settings provided through the installer interface."
   WriteINIStr "$INSTDIR\Wpkg-GP.ini" "WpkgConfig" "EnableViaLGP" $EnableViaLGP
   ${If} $WpkgCommand != ""
     WriteINIStr "$INSTDIR\Wpkg-GP.ini" "WpkgConfig" "WpkgCommand" $WpkgCommand
   ${EndIf}
   ${If} $NetworkPassword != ""
     WriteINIStr "$INSTDIR\Wpkg-GP.ini" "WpkgConfig" "WpkgNetworkUsername" $NetworkUsername
-    LogText "Disabling logging to not show password"
+    DetailPrint "Disabling logging to not show password"
     LogSet off
     WriteINIStr "$INSTDIR\Wpkg-GP.ini" "WpkgConfig" "WpkgNetworkPassword" "clear:$NetworkPassword"
     LogSet on
   ${EndIf}
   
   # Register components
-  LogText "Registering components"
+  DetailPrint "Registering components"
   WriteRegStr HKLM "Software\Wpkg-GP" "InstallPath" "$INSTDIR"
   
   #WPKG-GP
@@ -381,13 +392,13 @@ Section "Wpkg-GP Client" Section1
   WriteRegDWORD HKLM "System\CurrentControlSet\Services\EventLog\Application\WPKG-gp-GPE" "TypesSupported" 7
 
   # Install service
-  LogText "Installing service"
+  DetailPrint "Installing service"
   LogSet off
-  !insertmacro SERVICE "create" "WpkgServer" "path=$INSTDIR\WpkgServer.exe;autostart=1;interact=1;depend=LanmanWorkstation;display=WPKG Control Service;description=Controller service for userspace WPKG management applications. (http://wpkg-gp.googlecode.com/);"
+  !insertmacro SERVICE "create" "WpkgServer" "path=$INSTDIR\WpkgServer.exe;autostart=1;interact=0;depend=LanmanWorkstation;display=WPKG Control Service;description=Controller service for userspace WPKG management applications. (http://wpkg-gp.googlecode.com/);"
 
   # Attempt to start service
   LogSet on
-  LogText "Starting service"
+  DetailPrint "Starting service"
   nsExec::ExecToStack "net start WpkgServer"
   LogText "Command Returned:"
   ClearErrors
@@ -396,12 +407,12 @@ Section "Wpkg-GP Client" Section1
     LogText "$0"
   ${LoopUntil} 0 = 1
   
-  # Enable verbose bootup
+  DetailPrint "Enabling verbose bootup"
   WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" "verbosestatus" 1
   WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" "DisableStatusMessages" 0
   WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" "SyncForegroundPolicy" 1
   
-  # Register uninstallation options in add/remove programs
+  DetailPrint "Registering uninstallation options in add/remove programs"
   WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "DisplayName" "${PRODUCT_NAME}"
   WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "InstallLocation" "$INSTDIR"
@@ -416,6 +427,7 @@ Section "Wpkg-GP Client" Section1
   
   ${If} ${RebootFlag}
   ${AndIf} ${Silent}
+    LogText "Reboot flag set, rebooting from silent mode."
     Reboot
   ${EndIf}
   
