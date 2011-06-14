@@ -15,7 +15,7 @@ class WpkgWriter():
         logger.debug(R"Writing '%s' to pipe" % string)
         if self.handle != None:
             try:
-                win32file.WriteFile(self.handle, string.encode('utf-8'))
+                win32file.WriteFile(self.handle, string.decode('iso8859_15').encode('iso8859_15'))
                 return True
             except pywintypes.error, (n, f, e):
                 if n == 232 or n == 109: #The pipe is being closed (in the other end)
