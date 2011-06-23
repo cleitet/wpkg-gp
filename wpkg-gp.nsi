@@ -79,6 +79,7 @@ Function WpkgSettingsPage
   ${IfNot} ${SectionIsSelected} ${Section1}
     Abort
   ${Endif}
+  !insertmacro MUI_HEADER_TEXT "Path to Wpkg.js" "Please enter the path to your wpkg.js"
   !insertmacro INSTALLOPTIONS_WRITE "WpkgSettings.ini" "Field 3" "State" $WpkgCommand
   !insertmacro INSTALLOPTIONS_DISPLAY "WpkgSettings.ini"
 FunctionEnd
@@ -90,6 +91,7 @@ Function GroupPolicySettingsPage
   ${IfNot} ${SectionIsSelected} ${Section1}
     Abort
   ${Endif}
+  !insertmacro MUI_HEADER_TEXT "Group Policy settings" ""
   !insertmacro INSTALLOPTIONS_WRITE "GroupPolicySettings.ini" "Field 3" "State" $EnableViaLGP
   !insertmacro INSTALLOPTIONS_DISPLAY "GroupPolicySettings.ini"
 FunctionEnd
@@ -101,6 +103,7 @@ Function NetworkUserPage
   ${IfNot} ${SectionIsSelected} ${Section1}
     Abort
   ${Endif}
+  !insertmacro MUI_HEADER_TEXT "Network username and password" "Please enter a username and password for the network"
   !insertmacro INSTALLOPTIONS_WRITE "NetworkUserSettings.ini" "Field 4" "State" $NetworkUsername
   !insertmacro INSTALLOPTIONS_WRITE "NetworkUserSettings.ini" "Field 5" "State" $NetworkPassword
   !insertmacro INSTALLOPTIONS_DISPLAY "NetworkUserSettings.ini"
