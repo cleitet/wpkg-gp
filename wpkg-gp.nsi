@@ -427,8 +427,8 @@ Section "Wpkg-GP Client" Section1
   
   ${If} ${RebootFlag}
   ${AndIf} ${Silent}
-    LogText "Reboot flag set, rebooting from silent mode."
-    Reboot
+    LogText "Reboot flag set, setting exit code to 3010."
+    SetErrorLevel 3010
   ${EndIf}
   
 
