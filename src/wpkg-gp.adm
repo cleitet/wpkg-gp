@@ -5,12 +5,10 @@ CATEGORY "WPKG"
 		KEYNAME "Software\Policies\WPKG_gp"
 		EXPLAIN !!PolHelp
 
-		PART !!WpkgPathTip1 TEXT
-		END PART
-		PART !!WpkgPathTip2 TEXT
+		PART !!WpkgCommandTip1 TEXT
 		END PART
 		PART "WPKG command path" EDITTEXT
-			VALUENAME "WpkgPath"
+			VALUENAME "WpkgCommand"
 		END PART
 
 		PART !!WpkgVerbosityTip1 TEXT
@@ -19,29 +17,57 @@ CATEGORY "WPKG"
 			ValueName "WpkgVerbosity"
 		END PART
 		
-		PART !!WpkgMaxRebootsTip1 TEXT
+		PART !!WpkgNetworkUsernameTip1 TEXT
 		END PART
-		PART !!WpkgMaxRebootsTip2 TEXT
-		END PART
-		PART "WPKG-gp Maximum number of consecutive reboots" NUMERIC DEFAULT 10 MIN 0 MAX 1000 TXTCONVERT
-			ValueName "WpkgMaxReboots"
+		PART "Wpkg-GP Network Username" EDITTEXT
+			VALUENAME "WpkgNetworkUsername"
 		END PART
 		
+		PART !!WpkgNetworkPasswordTip1 TEXT
+		END PART
+		PART !!WpkgNetworkPasswordTip2 TEXT
+		END PART
+		PART !!WpkgNetworkPasswordTip3 TEXT
+		END PART
+		PART !!WpkgNetworkPasswordTip4 TEXT
+		END PART
+		PART "Wpkg-GP Network Password" EDITTEXT
+			VALUENAME "WpkgNetworkPassword"
+		END PART
+		
+		PART !!WpkgMaxRebootsTip1 TEXT
+		END PART
+		PART "Maximum consecutive Reboots" NUMERIC DEFAULT 10 MIN 0 MAX 1000 TXTCONVERT
+			VALUENAME "WpkgMaxReboots"
+		END PART
+			
+		PART !!WpkgRebootPolicyTip1 TEXT
+		END PART
+		PART "WPKG-gp Verbosity" DROPDOWNLIST
+			ITEMLIST
+			    NAME "Force" VALUE "force"
+				Name "Ignore" VALUE "ignore"
+			END ITEMLIST
+			ValueName "WpkgRebootPolicy"
+		END PART
 	END POLICY
 END CATEGORY
 
 [Strings]
 PolHelp="Configures settings for WPKG-GP, a utility for running WPKG as a group policy. See http://wpkg-gp.googlecode.com/ for more info."
-WpkgPathTip1="The path to your wpkg.js or cmd/bat script for starting WPKG."
-WpkgPathTip2="If you add"
 
-WpkgParametersTip1="Eventual parameters to wpkg, if you are call a cmd script, they"
-WpkgParametersTip2="would be in your cmd file, and this field should be empty."
-WpkgParametersTip3="If you call wpkg.js, you need '/synchronize /sendStatus /nonotify'"
-WpkgParametersTip4="here. Please note that you should never add /noReboot here, as"
-WpkgParametersTip5="WPKG-GP adds it itself."
+WpkgCommandTip1="The path to your wpkg.js or cmd/bat script for starting WPKG."
 
-WpkgVerbosityTip1="A value between 0 and 3, indicating how chatty wpkg-gp should be."
+WpkgVerbosityTip1="The log level (a value between 0 and 3)."
+
+WpkgNetworkUsernameTip1="The user name WPKG will use for connecting to the network."
+
+WpkgNetworkPasswordTip1="The password WPKG will use when connecting to the network"
+WpkgNetworkPasswordTip2="WARNING: This will be saved in clear-text in the registry."
+WpkgNetworkPasswordTip3="If you want it to be encrypted, configure it via the"
+WpkgNetworkPasswordTip4="wpkg-gp.ini file instead."
 
 WpkgMaxRebootsTip1="The maximum number of consecutive reboots allowed from WPKG-gp."
 WpkgMaxRebootsTip2="The default is 10 and the maximum is 1,000"
+
+WpkgRebootPolicyTip1="Whether Wpkg-GP should initialize a reboot when required, or not."
