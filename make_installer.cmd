@@ -1,10 +1,10 @@
 @echo off
-SET VERSION=0.11
+SET VERSION=0.10
 IF "%PROCESSOR_ARCHITECTURE%"=="x86" (
-  SET NSIS="%ProgramFiles%\NSIS\makensis.exe"
+  SET WIX="%ProgramFiles%\Windows Installer XML v3\bin"
   SET PYTHON32="c:\python26\python.exe"
 ) ELSE (
-  SET NSIS="%ProgramFiles(x86)%\NSIS\makensis.exe"
+  SET WIX="%ProgramFiles(x86)%\Windows Installer XML v3\bin"
   SET PYTHON32="c:\python26 (x86)\python.exe"
   SET PYTHON64="c:\python26 (x64)\python.exe"
 )
@@ -50,13 +50,14 @@ GOTO :eof
   SET ARCH=%1
   rd /s /q dist-%ARCH%
   rd /s /q build-%ARCH%
+  del /s /q installer\%ARCH%\*.wixobj
   ENDLOCAL
   GOTO :eof
 
 :make_py
   SETLOCAL
   SET ARCH=%1
-  if "%ARCH%"=="x86" (
+  if "ARCH"=="x86" (
     %PYTHON32% setup.py py2exe
   ) ELSE (
     %PYTHON64% setup.py py2exe
@@ -69,7 +70,8 @@ GOTO :eof
 :make_installer
   SETLOCAL
   SET ARCH=%1
-  %NSIS% /DPLATFORM=%ARCH% -DVERSION=%VERSION% %~dp0\Wpkg-GP.nsi
+  %WIX%\candle.exe -ext WixUtilExtension -arch %ARCH% -dReleaseVersion=%VERSION% -out installer\%ARCH%\ wpkg-gp.wxs installer\*.wxs
+  %WIX%\light.exe -spdb -ext WixUiExtension -ext WixUtilExtension -out wpkg-gp-%VERSION%_%ARCH%.msi installer\%ARCH%\*.wixobj
   ENDLOCAL
   GOTO :eof
   

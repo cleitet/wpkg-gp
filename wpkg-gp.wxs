@@ -1,0 +1,379 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+<!--
+The following variables need to be set in :
+ReleaseVersion: The version of WPKG-GP in x.y format, eg 0.6
+BuildArch:      The Architecture we are building for, x86 or x64
+-->
+<?if $(sys.BUILDARCH) = "x64" ?>
+  <?define var.PlatformInstallDir="InstallDirx64" ?>
+  <?define var.PlatformProgramFilesDir="ProgramFilesx64" ?>
+  <?define var.PlatformProgramFilesFolder="ProgramFiles64Folder" ?>
+<?else ?>
+  <?define var.PlatformInstallDir="InstallDir" ?>
+  <?define var.PlatformProgramFilesDir="ProgramFiles" ?>
+  <?define var.PlatformProgramFilesFolder="ProgramFilesFolder" ?>
+<?endif ?>
+  
+<!--
+Keep track of old ID's here:
+0.5: {A70E99ED-87C6-4142-88A7-8491459494A2} {}'s added by an error, make sure to keep
+0.6: 1f97d86c-2968-4def-9419-9d9cb349c339
+0.7: f4fefaeb-9305-42dd-a6a6-dcdf0664a642
+0.8: aedc7b28-3b50-411b-b218-c4f2264a5adc
+0.9: aa05d116-5a76-4bae-bd5f-220a3ba59abd
+-->
+
+<Product
+  Name='WPKG-gp $(var.ReleaseVersion) ($(sys.BUILDARCH))' Id='aa05d116-5a76-4bae-bd5f-220a3ba59abd'
+  UpgradeCode='5d49d975-2f3e-4a47-97f5-3cb759de60b1'
+  Language='1033' Codepage='1252' Version='$(var.ReleaseVersion).0'
+  Manufacturer='The WPKG-gp team'>
+  
+  <Package 
+    Id='*' Keywords='Installer' Description="WPKG-gp $(var.ReleaseVersion) Installer"
+    Comments='http://code.google.com/p/wpkg-gp/'
+    Manufacturer='The WPKG-gp team'
+    InstallerVersion='300' Languages='1033' Compressed='yes'
+    SummaryCodepage='1252' Platform='$(sys.BUILDARCH)'
+  />
+  <Upgrade Id='5d49d975-2f3e-4a47-97f5-3cb759de60b1'>
+    <UpgradeVersion
+      OnlyDetect='no' Property='PREVIOUSFOUND'
+      Minimum='0.1.0' IncludeMinimum='yes'
+      Maximum='$(var.ReleaseVersion).0' IncludeMaximum='no'
+    />
+    </Upgrade>
+  
+  <Condition Message="You need to be an administrator to install this product.">
+    Privileged
+  </Condition>
+  <Condition Message="WPKGVERBOSITY is '[WPKGVERBOSITY]', but must be a number between 0 and 3.">
+    <![CDATA[ NOT WPKGVERBOSITY OR (WPKGVERBOSITY>=0 AND WPKGVERBOSITY<=3) ]]>
+  </Condition>
+  <!-- VS2010 does not support Windows 2000 or XP =< SP1 anymore -->
+  <Condition Message='You need a Windows version >= Windows XP SP2 to install this product.'>
+    <![CDATA[  VersionNT >= 600 OR (VersionNT >= 501 AND ServicePackLevel >= 2) ]]>
+  </Condition>
+    
+  <Media Id='1' Cabinet='wpkg_gp.cab' EmbedCab='yes' DiskPrompt='CD-ROM #1' />
+  <Property Id='DiskPrompt' Value="WPKG-gp Installation [1]" />
+  <Directory Id='TARGETDIR' Name='SourceDir'>
+    <!-- ADM template -->
+    <Directory Id='WindowsFolder' Name='Windows'>
+      <Directory Id='Inf' Name='Inf'>
+        <Component Id='ADMComponent' Guid='60d976f1-9b3e-4a25-a4fb-5af91ad7e7bb'>
+          <File Id='ADMFile' DiskId='1' Name='wpkg-gp.adm' Source='src\wpkg-gp.adm' KeyPath='yes' />
+        </Component>
+      </Directory>
+    </Directory>
+    <!-- End ADM template -->
+    <Directory Id='$(var.PlatformProgramFilesFolder)' Name="$(var.PlatformProgramFilesDir)">
+      <Directory Id='$(var.PlatformInstallDir)' Name='WPKG-gp'>
+        <Directory Id="WPKGClientVC90Redist" Name='Microsoft.VC90.CRT'>
+          <Component Id='WpkgClientVC90RedistComponent' Guid='98076711-ed3e-4b5e-95e2-6a2c09084782'>
+            <File Id='WPKGClientVC90Libmsvcp90'  DiskId='1' Name='msvcp90.dll' Source='redist\VC90\Microsoft.VC90.CRT-$(sys.BUILDARCH)\msvcp90.dll' />
+            <File Id='WPKGClientVC90Libmsvcr90'  DiskId='1' Name='msvcr90.dll' Source='redist\VC90\Microsoft.VC90.CRT-$(sys.BUILDARCH)\msvcr90.dll' />
+            <File Id='WPKGClientVC90Libmsvcm90'  DiskId='1' Name='msvcm90.dll' Source='redist\VC90\Microsoft.VC90.CRT-$(sys.BUILDARCH)\msvcm90.dll' />
+            <File Id='WPKGClientVC90LibManifest' DiskId='1' Name='Microsoft.VC90.CRT.manifest' Source='redist\VC90\Microsoft.VC90.CRT-$(sys.BUILDARCH)\Microsoft.VC90.CRT.manifest' />
+          </Component>
+        </Directory>
+        <Component Id="WPKGClient" Guid="b26d4e48-43ae-4944-bc12-39c16375f89b">
+
+          <File Id='_hashlib.pyd' DiskId='1' Name='_hashlib.pyd' Source='dist-$(sys.BUILDARCH)\_hashlib.pyd' />
+          <File Id='_socket.pyd' DiskId='1' Name='_socket.pyd' Source='dist-$(sys.BUILDARCH)\_socket.pyd' />
+          <File Id='_ssl.pyd' DiskId='1' Name='_ssl.pyd' Source='dist-$(sys.BUILDARCH)\_ssl.pyd' />
+          <File Id='_win32sysloader.pyd' DiskId='1' Name='_win32sysloader.pyd' Source='dist-$(sys.BUILDARCH)\_win32sysloader.pyd' />
+          <File Id='bz2.pyd' DiskId='1' Name='bz2.pyd' Source='dist-$(sys.BUILDARCH)\bz2.pyd' />
+          <File Id='library.zip' DiskId='1' Name='library.zip' Source='dist-$(sys.BUILDARCH)\library.zip' />
+          <File Id='perfmon.pyd' DiskId='1' Name='perfmon.pyd' Source='dist-$(sys.BUILDARCH)\perfmon.pyd' />
+          <File Id='python26.dll' DiskId='1' Name='python26.dll' Source='dist-$(sys.BUILDARCH)\python26.dll' />
+          <File Id='pywintypes26.dll' DiskId='1' Name='pywintypes26.dll' Source='dist-$(sys.BUILDARCH)\pywintypes26.dll' />
+          <File Id='select.pyd' DiskId='1' Name='select.pyd' Source='dist-$(sys.BUILDARCH)\select.pyd' />
+          <File Id='servicemanager.pyd' DiskId='1' Name='servicemanager.pyd' Source='dist-$(sys.BUILDARCH)\servicemanager.pyd' />
+          <File Id='unicodedata.pyd' DiskId='1' Name='unicodedata.pyd' Source='dist-$(sys.BUILDARCH)\unicodedata.pyd' />
+          <File Id='win32api.pyd' DiskId='1' Name='win32api.pyd' Source='dist-$(sys.BUILDARCH)\win32api.pyd' />
+          <File Id='win32crypt.pyd' DiskId='1' Name='win32crypt.pyd' Source='dist-$(sys.BUILDARCH)\win32crypt.pyd' />
+          <File Id='win32event.pyd' DiskId='1' Name='win32event.pyd' Source='dist-$(sys.BUILDARCH)\win32event.pyd' />
+          <File Id='win32evtlog.pyd' DiskId='1' Name='win32evtlog.pyd' Source='dist-$(sys.BUILDARCH)\win32evtlog.pyd' />
+          <File Id='win32file.pyd' DiskId='1' Name='win32file.pyd' Source='dist-$(sys.BUILDARCH)\win32file.pyd' />
+          <File Id='win32pipe.pyd' DiskId='1' Name='win32pipe.pyd' Source='dist-$(sys.BUILDARCH)\win32pipe.pyd' />
+          <File Id='win32security.pyd' DiskId='1' Name='win32security.pyd' Source='dist-$(sys.BUILDARCH)\win32security.pyd' />
+          <File Id='win32service.pyd' DiskId='1' Name='win32service.pyd' Source='dist-$(sys.BUILDARCH)\win32service.pyd' />
+          <File Id='win32wnet.pyd' DiskId='1' Name='win32wnet.pyd' Source='dist-$(sys.BUILDARCH)\win32wnet.pyd' />
+          <File Id='WpkgPipeClient.exe' DiskId='1' Name='WpkgPipeClient.exe' Source='dist-$(sys.BUILDARCH)\WpkgPipeClient.exe' />
+          <?if $(sys.BUILDARCH) = "x64" ?>
+          <File Id='CFGMGR32.dll' DiskId='1' Name='CFGMGR32.dll' Source='dist-$(sys.BUILDARCH)\CFGMGR32.dll' />
+          <File Id='CRYPT32.dll' DiskId='1' Name='CRYPT32.dll' Source='dist-$(sys.BUILDARCH)\CRYPT32.dll' />
+          <File Id='DEVOBJ.dll' DiskId='1' Name='DEVOBJ.dll' Source='dist-$(sys.BUILDARCH)\DEVOBJ.dll' />
+          <File Id='KERNELBASE.dll' DiskId='1' Name='KERNELBASE.dll' Source='dist-$(sys.BUILDARCH)\KERNELBASE.dll' />
+          <File Id='MPR.dll' DiskId='1' Name='MPR.dll' Source='dist-$(sys.BUILDARCH)\MPR.dll' />
+          <File Id='MSASN1.dll' DiskId='1' Name='MSASN1.dll' Source='dist-$(sys.BUILDARCH)\MSASN1.dll' />
+          <File Id='MSWSOCK.dll' DiskId='1' Name='MSWSOCK.dll' Source='dist-$(sys.BUILDARCH)\MSWSOCK.dll' />
+          <File Id='POWRPROF.dll' DiskId='1' Name='POWRPROF.dll' Source='dist-$(sys.BUILDARCH)\POWRPROF.dll' />
+          <File Id='SETUPAPI.dll' DiskId='1' Name='SETUPAPI.dll' Source='dist-$(sys.BUILDARCH)\SETUPAPI.dll' />
+          <?endif ?>
+        </Component>
+        <Component Id='WPKGService' Guid='f86f943e-bd60-45aa-a425-e42f1a49ca1b'>
+          <File Id='WpkgServerExe' DiskId='1' Name='WpkgServer.exe' Source='dist-$(sys.BUILDARCH)\WpkgServer.exe' KeyPath='yes' />
+          <ServiceInstall
+            Id='WPKGServiceInstall'
+            Name='WpkgServer'
+            DisplayName='WPKG Control Service'
+            Description='Controller service for userspace WPKG management applications. (http://wpkg-gp.googlecode.com/)'
+            ErrorControl='normal'
+            Start='auto'
+            Type='ownProcess'>
+            <util:ServiceConfig
+              ServiceName="WpkgServer"
+              FirstFailureActionType="restart"
+              SecondFailureActionType="restart"
+              ThirdFailureActionType="none"
+              ResetPeriodInDays="1" 
+            />
+            <ServiceDependency Id='eventlog' />
+            <ServiceDependency Id='LanmanServer' /> <!-- Required for Named Pipes -->
+            <ServiceDependency Id='LanmanWorkstation' /> <!-- Required for network communications -->
+          </ServiceInstall>
+          <ServiceControl
+            Id='WPKGServiceControl'
+            Name='WpkgServer'
+            Remove='uninstall'
+            Start='install'
+            Stop='both'
+            Wait='yes'
+           />
+        </Component>
+        <Component Id='RegisterSoftwareSettings' Guid='51afb602-1e39-4fe0-a1e4-3695a6f061b1'>
+          <RegistryKey Id='SoftwareSettingsKey' Root='HKLM' Key='SOFTWARE\WPKG-gp' Action='create'>
+            <RegistryValue Id='RegisterInstallPath' Name='InstallPath' Action='write' Type='string' Value='[$(var.PlatformInstallDir)]' />
+          </RegistryKey>
+        </Component>
+        <Component Id='RegisterPolicySettings' Guid='864a40ae-0067-46c5-8aa5-ae4a2f9b89a7' Permanent="yes">
+          <RegistryKey Id='PolicySettingsKey' Root='HKLM' Key='SOFTWARE\Policies\WPKG_GP' Action='create'>
+            <RegistryValue Id='WpkgPathValue' Name='WpkgPath' Action='write' Type='string' Value='[WPKGPATH]' />
+            <RegistryValue Id='WpkgVerbosityValue' Name='WpkgVerbosity' Action='write' Type='string' Value='[WPKGVERBOSITY]' />
+          </RegistryKey>
+          <RegistryKey Id='SystemPoliciesKey' Root='HKLM' Key='SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' Action='create'>
+            <RegistryValue Id='VerboseStatusValue' Name='verbosestatus' Action='write' Type='integer' Value='[REGSAVEVERBOSEBOOT]' />
+            <RegistryValue Id='DisableMessagesValue' Name='DisableStatusMessages' Action='write' Type='integer' Value='[REGSAVEDISABLEBOOTMESSAGES]' />
+          </RegistryKey>
+          <RegistryKey Id='WinlogonKey' Root='HKLM' Key='SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' Action='create'>
+            <RegistryValue Id='SyncForegroundPolicy' Name='SyncForegroundPolicy' Action='write' Type='integer' Value='1' />
+          </RegistryKey>
+        </Component>
+      </Directory>
+    </Directory>
+  </Directory>
+  <DirectoryRef Id="$(var.PlatformInstallDir)">
+    <Component Id='GPExtention' Guid='9a9ffe56-fe95-48a6-b19d-d7f386c65456'>
+      <!-- GPO Extention and registering -->
+      <File Id='GPEDll' DiskId='1' Name='WPKG-gp.dll' Source='src\gpe\$(sys.BUILDARCH)\Release\WPKG-gp.dll' KeyPath='yes' />
+      <!-- Registering as a GPE -->
+      <RegistryKey
+        Id='RegisterGPEDllKey' Root='HKLM'
+        Key='SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\GPExtensions\{A9B8D792-F454-11DE-BA92-FDCF56D89593}'
+        Action='createAndRemoveOnUninstall'>
+        <RegistryValue Id='RegisterGPEDllDefaultValue' Action='write' Type='string' Value='WPKG-gp' />
+        <RegistryValue Id='RegisterGPEDllName' Name='DllName' Action='write' Type='multiString' Value='[$(var.PlatformInstallDir)]WPKG-gp.dll' />
+        <RegistryValue Id='RegisterGPEDllNoBackgroundPolicy' Name='NoBackgroundPolicy' Action='write' Type='integer' Value='1' />
+        <RegistryValue Id='RegisterGPEDllNoUserPolicy' Name='NoUserPolicy' Action='write' Type='integer' Value='1' />
+        <RegistryValue Id='RegisterGPEDllProcessGroupPolicy' Name='ProcessGroupPolicy' Action='write' Type='string' Value='ProcessGroupPolicy' />
+      </RegistryKey>
+      <RegistryKey
+        Id="RegisterGpLoggingKey" Root="HKLM"
+        Key='System\CurrentControlSet\Services\EventLog\Application\WPKG-gp-GPE'
+        Action='createAndRemoveOnUninstall'>
+        <RegistryValue Id='GpLoggingKeyEventMessageFile' Name='EventMessageFile' Action='write' Type='string' Value='[$(var.PlatformInstallDir)]WPKG-gp.dll' />
+        <RegistryValue Id='GpLoggingKeyTypesSupported' Name='TypesSupported' Action='write' Type='integer' Value='7' />
+      </RegistryKey>
+    </Component>
+    <Component Id='GPTestTool' Guid='63603cb0-f599-4dae-b24e-723545c673cc'>
+      <File Id='GPTestExe' DiskId='1' Name='WPKG-GP-test.exe' Source='src\gpe\$(sys.BUILDARCH)\Release\WPKG-gp-test.exe' KeyPath='yes' />
+    </Component>
+  </DirectoryRef>
+  
+  <!-- Including VCPP2010 Runtime Library -->
+  <DirectoryRef Id="$(var.PlatformInstallDir)">
+    <Directory Id="VCPP2010RedistDirectory" Name="VC++2010Redist">
+      <Component Id="VCPP2010Redist" Guid="98789b31-4b23-4ef4-b267-b87cf2e8f662">
+        <File Id="VCPP2010RedistExe" Source="redist\VC100\vcredist_$(sys.BUILDARCH).exe" KeyPath="yes" Checksum="yes"/>
+      </Component>
+    </Directory>
+  </DirectoryRef>
+    
+  <Feature Id='Complete' Title='WPKG-gp $(var.ReleaseVersion)' Level='1' Description='Complete installation' Display='expand'>
+    <Feature Id='GPExtentionFeature' Title='Group Policy Extention and service' Description='Install and register the Group Policy Extention DLL. This action installs the needed C++ Merge module as well.' Level='1'>
+      <ComponentRef Id='RegisterSoftwareSettings' />
+      <ComponentRef Id='GPExtention' />
+      <ComponentRef Id='WPKGClient' />
+      <ComponentRef Id='WPKGService' />
+      <ComponentRef Id='VCPP2010Redist' />
+      <ComponentRef Id='WpkgClientVC90RedistComponent' />
+      <ComponentRef Id='RegisterPolicySettings' />
+    </Feature>
+    <Feature Id='ADMComponentFeature' Title='Administrative Template' Description='Install the Administrative Template for configuring the WPKG-gp GPE' Level='1'>
+      <ComponentRef Id='ADMComponent'/>
+    </Feature>
+    <Feature Id='WPKGGPClientFeature' Level='1' Title='Debug Tool' Description='Install a debugging tool that does the same as the wpkg-gp.dll'>
+      <ComponentRef Id='RegisterSoftwareSettings' />
+      <ComponentRef Id='GPTestTool' />
+      <ComponentRef Id='WPKGClient' />
+      <ComponentRef Id='WPKGService' />
+      <ComponentRef Id='VCPP2010Redist' />
+      <ComponentRef Id='WpkgClientVC90RedistComponent' />
+      <ComponentRef Id='RegisterPolicySettings' />
+    </Feature>
+  </Feature>
+  <!-- Hack to make registry changes happen on reinstall -->
+  <Feature Id="FeatureToReinstallDuringChange" Level='1' Display="hidden">
+    <ComponentRef Id='RegisterPolicySettings' />
+    <ComponentRef Id='WPKGService' />
+  </Feature>
+  
+  
+  <!-- Check to see if Visual C++ Redist 2010 is installed -->
+  <Property Id='VCPP2010ISINSTALLED'>
+    <?if $(sys.BUILDARCH) = "x64" ?>
+    <RegistrySearch Id='VCPP2010IsInstalledRegSearch' Root='HKLM'
+                    Key='SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{DA5E371C-6333-3D8A-93A4-6FD5B20BCC6E}'
+                    Type='raw' Name='DisplayVersion'/>
+    <?else ?>
+    <RegistrySearch Id='VCPP2010IsInstalledRegSearch' Root='HKLM'
+                    Key='SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{196BB40D-1578-3D01-B289-BEFC77A11A1E}'
+                    Type='raw' Name='DisplayVersion'/>
+    <?endif ?>
+  </Property>
+  
+  <!-- Properties for UI -->
+  <Property Id='NETWORKUSERNAME' >
+    <RegistrySearch Id="NetworkUserNameSearch" Root="HKLM"
+                    Key="SOFTWARE\WPKG-gp"
+                    Type="raw" Name="NetworkUserName" />
+  </Property>
+  <SetProperty Id='UIENABLEVERBOSEBOOT' Value='1' After="AppSearch" Sequence='ui'>
+    <![CDATA[ ENABLEVERBOSEBOOT<>"0" ]]>
+  </SetProperty>
+  <SetProperty Id='ENABLEVERBOSEBOOT' Value='0' Before="ExecuteAction" Sequence="ui">
+    NOT UIENABLEVERBOSEBOOT
+  </SetProperty>
+  <Property Id='REGSAVEVERBOSEBOOT' Value='1' />
+  <SetProperty Id='REGSAVEVERBOSEBOOT' Value='0' After="AppSearch" Sequence='execute'>
+    ENABLEVERBOSEBOOT="0"
+  </SetProperty>
+   
+  <SetProperty Id='DISABLEBOOTMESSAGES' Value='1' After="AppSearch">
+    <![CDATA[ DISABLEBOOTMESSAGES AND DISABLEBOOTMESSAGES<>"0" ]]>
+  </SetProperty>
+  <Property Id='REGSAVEDISABLEBOOTMESSAGES' Value='0' />
+  <SetProperty Id='REGSAVEDISABLEBOOTMESSAGES' Value='1' After="SetDISABLEBOOTMESSAGES">
+    DISABLEBOOTMESSAGES=1
+  </SetProperty>
+  
+  <Property Id="REGWPKGPATH">
+    <RegistrySearch Id='WpkgPathSearch' Root='HKLM'
+                    Key='SOFTWARE\Policies\WPKG_GP'
+                    Type='raw' Name='WpkgPath'/>
+  </Property>
+  <SetProperty Id='WPKGPATH' Value='[REGWPKGPATH]' After="AppSearch" Secure="yes">
+    NOT WPKGPATH
+  </SetProperty>
+  
+  
+  <Property Id="REGWPKGVERBOSITY">
+    <RegistrySearch Id='WpkgVerbositySearch' Root='HKLM'
+                    Key='SOFTWARE\Policies\WPKG_GP'
+                    Type='raw' Name='WpkgVerbosity'/>
+  </Property>
+  <SetProperty Id='WPKGVERBOSITY' Value='[REGWPKGVERBOSITY]' After="AppSearch" Secure="yes">
+    NOT WPKGVERBOSITY
+  </SetProperty>
+  
+  <CustomAction Id="InstallVCPP2010" FileKey="VCPP2010RedistExe"
+                ExeCommand="/passive" Execute="deferred"
+                Impersonate="no" Return="asyncNoWait" />  
+  <CustomAction Id="InstallVCPP2010Silent" FileKey="VCPP2010RedistExe"
+                ExeCommand="/q" Execute="deferred"
+                Impersonate="no" Return="asyncNoWait" />
+                
+  <CustomAction Id="UpdateNetworkUser_CMD" Property="UpdateNetworkUser"
+                Value='"[#WpkgPipeClient.exe]" SetNetworkUser [NETWORKUSERNAME] [NETWORKPASSWORD]'
+                Execute="immediate" />
+  <?if $(sys.BUILDARCH) = "x64" ?>
+    <CustomAction Id="UpdateNetworkUser" BinaryKey="WixCA" DllEntry="CAQuietExec64" Execute="deferred" Return="ignore" Impersonate="no" />
+  <?else ?>
+    <CustomAction Id="UpdateNetworkUser" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="deferred" Return="ignore" Impersonate="no" />
+  <?endif ?>
+  
+  <CustomAction Id="AddToLGP_CMD" Property="AddToLGP"
+                Value='"[#WpkgPipeClient.exe]" EnableViaLGP add'
+                Execute="immediate" />
+  <?if $(sys.BUILDARCH) = "x64" ?>
+    <CustomAction Id="AddToLGP" BinaryKey="WixCA" DllEntry="CAQuietExec64" Execute="deferred" Return="ignore" Impersonate="no" />
+  <?else ?>
+    <CustomAction Id="AddToLGP" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="deferred" Return="ignore" Impersonate="no" />
+  <?endif ?>
+  
+  <?if $(sys.BUILDARCH) = "x64" ?>
+    <CustomAction Id="RemoveFromLGP_CMD" Property="QtExec64CmdLine" Value='"[$(var.PlatformInstallDir)]WpkgPipeClient.exe" EnableViaLGP remove' Execute="immediate" />
+    <CustomAction Id="RemoveFromLGP" BinaryKey="WixCA" DllEntry="CAQuietExec64" Execute="immediate" Return="ignore" />
+  <?else ?>
+    <CustomAction Id="RemoveFromLGP_CMD" Property="QtExecCmdLine" Value='"[$(var.PlatformInstallDir)]WpkgPipeClient.exe" EnableViaLGP remove' Execute="immediate" />
+    <CustomAction Id="RemoveFromLGP" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="immediate" Return="ignore" />
+  <?endif ?>
+
+  <CustomAction Id="SetREINSTALL" 
+                Property="REINSTALL"
+                Value="FeatureToReinstallDuringChange" />
+
+  <InstallExecuteSequence>
+    <RemoveExistingProducts Before="InstallInitialize"/>
+    <Custom Action="InstallVCPP2010" After="InstallFiles">
+      <!-- Execute only if component is selected for installation, and UILevel = 2 and skip if already installed -->
+      <![CDATA[ ($VCPP2010Redist > 1) AND (UILevel > 2) AND NOT VCPP2010ISINSTALLED]]>
+    </Custom>
+    <Custom Action="InstallVCPP2010Silent" After="InstallFiles">
+      <!-- Execute only if component is selected for installation, and UILevel = 2 and skip if already installed -->
+      <![CDATA[ ($VCPP2010Redist > 1) AND (UILevel = 2) AND NOT VCPP2010ISINSTALLED]]>
+    </Custom>
+    
+    <Custom Action="UpdateNetworkUser_CMD" After="CostFinalize" />
+    <Custom Action="UpdateNetworkUser" After="StartServices">
+      NETWORKUSERNAME AND NETWORKPASSWORD
+    </Custom>
+    
+    <Custom Action="AddToLGP_CMD" After="CostFinalize" />
+    <Custom Action="AddToLGP" After="StartServices">
+      ENABLEVIALGP = 1
+    </Custom>
+    
+    <Custom Action="RemoveFromLGP_CMD" After="CostFinalize" />
+    <Custom Action="RemoveFromLGP" After="RemoveFromLGP_CMD">
+      <!-- See http://stackoverflow.com/questions/320921/how-to-add-a-wix-custom-action-that-happens-only-on-uninstall-via-msi -->
+      <!-- http://strangelights.com/blog/archive/2004/07/07/160.aspx -->
+      <![CDATA[
+        (?WPKGClient>2 AND $WPKGClient=2)
+        OR (?WPKGClient>2 AND NOT ENABLEVIALGP)
+      ]]>
+    </Custom>
+    
+    <Custom Action="SetREINSTALL" Before="CostInitialize">
+      <![CDATA[
+        Installed
+        AND NOT (REMOVE ~= "ALL")
+        AND NOT REINSTALL
+        AND ?WPKGClient>2
+      ]]>
+    </Custom>
+  </InstallExecuteSequence>
+    
+  <UIRef Id="WixUI_Mondo_Customized" />
+  <UI>
+    <ProgressText Action="InstallVCPP2010">Launching Visual C++ 2010 Redistributable installer</ProgressText>
+    <ProgressText Action="UpdateNetworkUser">Updating the network user</ProgressText>
+    <ProgressText Action="AddToLGP">Removing config to Local Group Policies</ProgressText>
+    <ProgressText Action="RemoveFromLGP">Removing config from Local Group Policies</ProgressText>
+  </UI>
+  <WixVariable Id="WixUILicenseRtf" Value="installer\License.rtf" />
+</Product>
+</Wix>

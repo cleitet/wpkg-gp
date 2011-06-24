@@ -33,13 +33,12 @@ WpkgServer = Target(
     cmdline_style='pywin32'
 )
 
-#data_files = [("Microsoft.VC90.CRT", glob(r'redist\VC90\Microsoft.VC90.CRT-'+architecture+'\*.*'))]
+data_files = [("Microsoft.VC90.CRT", glob(r'redist\VC90\Microsoft.VC90.CRT-'+architecture+'\*.*'))]
 
 setup(
     version = version,
     package_dir = {'': 'src'},
     packages = [''],
-    #data_files=data_files,
+    data_files=data_files,
     service = [WpkgServer],
-    options={"py2exe":{"dll_excludes":[ "mswsock.dll", "powrprof.dll" ]}},
     console=[WpkgPipeClient])

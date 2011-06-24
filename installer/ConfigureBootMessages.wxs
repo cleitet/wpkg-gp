@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <UI>
+      <Dialog Id="ConfigureBootMessages" Width="370" Height="270" Title="!(loc.VerifyReadyDlg_Title)">
+	    <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="!(loc.VerifyReadyDlgBannerBitmap)" />
+		  <Control Id="Title" Type="Text" X="15" Y="6" Width="210" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Boot Message and GPE Configuration" />
+      <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Boot message configuration (may be overridden by Group Policy Settings)." />
+      <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+      <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+      <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)" />
+      <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
+      <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+        <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+      </Control>
+        
+      <Control Id="DescriptionLabel" Type="Text" X="20" Y="60" Width="350" Height="28" NoPrefix="yes" Text="In order for Group Policy Extensions to be able to post messages to the prelogon screen, you need to enable vebose boot." />
+      <Control Id="VerboseBootButton" Type="CheckBox" X="20" Y="90" Width="350" Height="15" Property="UIENABLEVERBOSEBOOT" Text="Enable verbose startup messages." CheckBoxValue="1"/>
+      <Control Id="DisableBootMessagesButton" Type="CheckBox" X="20" Y="110" Width="350" Height="15" Property="DISABLEBOOTMESSAGES" Text="Remove Boot/Shutdown/Logon/Logoff status messages." CheckBoxValue="1"/>
+      <Control Id="DividerLine" Type="Line" X="10" Y="135" Width="350" Height="0" />
+      <Control Id="DescriptionLabel2" Type="Text" X="20" Y="150" Width="350" Height="28" NoPrefix="yes" Text="You may enable WPKG-GP via Local Group Policies. This enables WPKG-GP to run even though your computer is not a member of an Active Directory domain." />
+      <Control Id="EnableViaLGPButton" Type="CheckBox" X="20" Y="180" Width="350" Height="15" Property="ENABLEVIALGP" Text="Enable WPKG-GP via Local Group Policies." CheckBoxValue="1"/>
+      
+      </Dialog>
+    </UI>
+  </Fragment>
+</Wix>
