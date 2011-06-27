@@ -9,6 +9,7 @@ from win32event import *
 from win32file import *
 from win32pipe import *
 from win32api import *
+from win32security import *
 from ntsecuritycon import *
 import traceback
 import thread
@@ -83,18 +84,47 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
         sidEveryone = pywintypes.SID()
         sidEveryone.Initialize(SECURITY_WORLD_SID_AUTHORITY,1)
         sidEveryone.SetSubAuthority(0, SECURITY_WORLD_RID)
+
+        #sidLocalAdministrator = pywintypes.SID()
+        #sidLocalAdministrator.Initialize(SECURITY_NT_AUTHORITY,2)
+        #sidLocalAdministrator.SetSubAuthority(0, SECURITY_BUILTIN_DOMAIN_RID)
+        #sidLocalAdministrator.SetSubAuthority(1, DOMAIN_ALIAS_RID_ADMINS)
+            
         sidCreator = pywintypes.SID()
         sidCreator.Initialize(SECURITY_CREATOR_SID_AUTHORITY,1)
         sidCreator.SetSubAuthority(0, SECURITY_CREATOR_OWNER_RID)
 
         acl = pywintypes.ACL()
         acl.AddAccessAllowedAce(FILE_GENERIC_READ|FILE_GENERIC_WRITE, sidEveryone)
+        #acl.AddAccessAllowedAce(FILE_GENERIC_READ|FILE_GENERIC_WRITE, sidLocalAdministrator)
         acl.AddAccessAllowedAce(FILE_ALL_ACCESS, sidCreator)
 
         sa.SetSecurityDescriptorDacl(1, acl, 0)
         return sa
 
-    # The functions executed in their own thread to process a client request.
+    def CheckIfClientIsLocalAdministrator(self, handle):
+        # Check security
+        self.logger.debug("Checking client acccess")
+        ImpersonateNamedPipeClient(handle)
+        token = OpenThreadToken(GetCurrentThread(), TOKEN_ALL_ACCESS, 1)
+        groups = GetTokenInformation(token, TokenGroups)
+        for group in groups:
+            try:
+                user, domain, attribue = LookupAccountSid (None, group[0])
+                if user == "Administrators":
+                    self.logger.debug("Client is a member of Administrators group")
+                    RevertToSelf()
+                    return True
+            except error as (n, f, d):
+                if n == 1332: # No mapping between account names and security ID
+                    pass
+                else:
+                    RevertToSelf()
+                    raise
+        self.logger.debug("Client is not a member of Administrators group")
+        RevertToSelf()
+        return False
+    
     def DoProcessClient(self, pipeHandle, tid):
         self.logger.debug("DoProcessClient() start")
         try:
@@ -121,13 +151,21 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
                     self.logger.info("Wpkg Executer is not ready. Returning '%s' to client." % msg)
                     servicemanager.LogErrorMsg(msg)
                     WriteFile(pipeHandle, msg.encode('ascii'))
-                else:	
+                else:
                     if d == b"Execute":
                         self.logger.info("Received 'Execute', executing WPKG")
-                        self.WpkgExecuter.Execute(pipeHandle)
+                        if self.CheckIfClientIsLocalAdministrator(pipeHandle):
+                            self.WpkgExecuter.Execute(pipeHandle)
+                        else:
+                            self.logger.info("The user trying to execute Wpkg-GP is not a member of local administrators group")
+                            WriteFile(pipeHandle, "200 You are not authorized to execute Wpkg-GP".encode('ascii'))
                     elif d == b"Cancel":
                         self.logger.info("Received 'Cancel', cancelling WPKG")
-                        self.WpkgExecuter.Cancel(pipeHandle)                       
+                        if self.CheckIfClientIsLocalAdministrator(pipeHandle):
+                            self.WpkgExecuter.Cancel(pipeHandle)
+                        else:
+                            self.logger.info("The user trying to execute Wpkg-GP is not a member of local administrators group")
+                            WriteFile(pipeHandle, "200 You are not authorized to execute Wpkg-GP".encode('ascii'))
                     else:
                         msg = "203 Unknown command: %s" % d
                         self.logger.info("Sending '%s' to client" % msg)
