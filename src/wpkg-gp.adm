@@ -43,22 +43,23 @@ CATEGORY "WPKG"
 			
 		PART !!WpkgRebootPolicyTip1 TEXT
 		END PART
-		PART "WPKG-gp Verbosity" DROPDOWNLIST
+		PART "WPKG-gp Reboot Policy" DROPDOWNLIST
+			ValueName "WpkgRebootPolicy"
 			ITEMLIST
 			    NAME "Force" VALUE "force"
 				Name "Ignore" VALUE "ignore"
 			END ITEMLIST
-			ValueName "WpkgRebootPolicy"
 		END PART
 		
 		PART !!WpkgExecuteByNonAdminsTip1 TEXT
 		END PART
 		PART "Allow" DROPDOWNLIST
+			ValueName "WpkgExecuteByNonAdmins"
 			ITEMLIST
 				NAME "Yes" VALUE "1"
 				NAME "No" VALUE "0"
 			END ITEMLIST
-			ValueName "WpkgExecuteByNonAdmins"
+		END PART
 	END POLICY
 END CATEGORY
 
@@ -81,4 +82,4 @@ WpkgMaxRebootsTip2="The default is 10 and the maximum is 1,000"
 
 WpkgRebootPolicyTip1="Whether Wpkg-GP should initialize a reboot when required, or not."
 
-WpkgExecuteByNonAdminsTip1" Configure whether users not in local administrator's group should be able to execute Wpkg-GP"
+WpkgExecuteByNonAdminsTip1="Configure whether users not in local administrator's group should be able to execute Wpkg-GP"
