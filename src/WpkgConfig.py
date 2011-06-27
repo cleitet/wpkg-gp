@@ -32,7 +32,8 @@ class WpkgConfig(object):
             WpkgSetting(self, "InstallOnShutdown", 1, "int"),
             WpkgSetting(self, "EnableViaLGP", 0, "int"),
             WpkgSetting(self, "WpkgNetworkUsername"),
-            WpkgPasswordSetting(self, "WpkgNetworkPassword", None, "password")
+            WpkgPasswordSetting(self, "WpkgNetworkPassword", None, "password"),
+            WpkgSetting(self, "WpkgExecuteByNonAdmins", 1, "int")
             ]
     def get(self, name):
         for i in self.settings:

@@ -50,6 +50,15 @@ CATEGORY "WPKG"
 			END ITEMLIST
 			ValueName "WpkgRebootPolicy"
 		END PART
+		
+		PART !!WpkgExecuteByNonAdminsTip1 TEXT
+		END PART
+		PART "Allow" DROPDOWNLIST
+			ITEMLIST
+				NAME "Yes" VALUE "1"
+				NAME "No" VALUE "0"
+			END ITEMLIST
+			ValueName "WpkgExecuteByNonAdmins"
 	END POLICY
 END CATEGORY
 
@@ -71,3 +80,5 @@ WpkgMaxRebootsTip1="The maximum number of consecutive reboots allowed from WPKG-
 WpkgMaxRebootsTip2="The default is 10 and the maximum is 1,000"
 
 WpkgRebootPolicyTip1="Whether Wpkg-GP should initialize a reboot when required, or not."
+
+WpkgExecuteByNonAdminsTip1" Configure whether users not in local administrator's group should be able to execute Wpkg-GP"

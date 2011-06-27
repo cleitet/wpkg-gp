@@ -152,16 +152,17 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
                     servicemanager.LogErrorMsg(msg)
                     WriteFile(pipeHandle, msg.encode('ascii'))
                 else:
+                    execute_by_nonadmins = self.config.get("WpkgExecuteByNonAdmins")
                     if d == b"Execute":
                         self.logger.info("Received 'Execute', executing WPKG")
-                        if self.CheckIfClientIsLocalAdministrator(pipeHandle):
+                        if execute_by_nonadmins == 1 or self.CheckIfClientIsLocalAdministrator(pipeHandle):
                             self.WpkgExecuter.Execute(pipeHandle)
                         else:
                             self.logger.info("The user trying to execute Wpkg-GP is not a member of local administrators group")
                             WriteFile(pipeHandle, "200 You are not authorized to execute Wpkg-GP".encode('ascii'))
                     elif d == b"Cancel":
                         self.logger.info("Received 'Cancel', cancelling WPKG")
-                        if self.CheckIfClientIsLocalAdministrator(pipeHandle):
+                        if execute_by_nonadmins == 1 or self.CheckIfClientIsLocalAdministrator(pipeHandle):
                             self.WpkgExecuter.Cancel(pipeHandle)
                         else:
                             self.logger.info("The user trying to execute Wpkg-GP is not a member of local administrators group")
