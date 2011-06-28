@@ -113,7 +113,6 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
         for group in groups:
             try:
                 user, domain, attribue = LookupAccountSid (None, group[0])
-                print user, domain
                 if user == "Administrators":
                     self.logger.debug("Client is a member of Administrators group")
                     is_local_admin = True
