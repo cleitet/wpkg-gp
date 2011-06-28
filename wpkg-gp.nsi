@@ -53,7 +53,6 @@ Var /GLOBAL INI
 # Dynamic file lists
 !system "setup\include\list_files_in_dist.exe /Platform ${PLATFORM}"
 !include "setup\include\file-${PLATFORM}.nsi"
-!include "setup\include\move-${PLATFORM}.nsi"
 !include "setup\include\delete-${PLATFORM}.nsi"
 
 
@@ -74,44 +73,6 @@ Page custom NetworkUserPage NetworkUserPageCallback
 !insertmacro MUI_UNPAGE_FINISH
 
 !insertmacro MUI_LANGUAGE "English"
-
-Function WpkgSettingsPage
-  ${IfNot} ${SectionIsSelected} ${Section1}
-    Abort
-  ${Endif}
-  !insertmacro MUI_HEADER_TEXT "Path to Wpkg.js" "Please enter the path to your wpkg.js"
-  !insertmacro INSTALLOPTIONS_WRITE "WpkgSettings.ini" "Field 3" "State" $WpkgCommand
-  !insertmacro INSTALLOPTIONS_DISPLAY "WpkgSettings.ini"
-FunctionEnd
-Function WpkgSettingsPageCallback
-  !insertmacro INSTALLOPTIONS_READ $WpkgCommand "WpkgSettings.ini" "Field 3" "State"
-FunctionEnd
-
-Function GroupPolicySettingsPage
-  ${IfNot} ${SectionIsSelected} ${Section1}
-    Abort
-  ${Endif}
-  !insertmacro MUI_HEADER_TEXT "Group Policy settings" ""
-  !insertmacro INSTALLOPTIONS_WRITE "GroupPolicySettings.ini" "Field 3" "State" $EnableViaLGP
-  !insertmacro INSTALLOPTIONS_DISPLAY "GroupPolicySettings.ini"
-FunctionEnd
-Function GroupPolicySettingsPageCallback
-  !insertmacro INSTALLOPTIONS_READ $EnableViaLGP "GroupPolicySettings.ini" "Field 3" "State"
-FunctionEnd
-
-Function NetworkUserPage
-  ${IfNot} ${SectionIsSelected} ${Section1}
-    Abort
-  ${Endif}
-  !insertmacro MUI_HEADER_TEXT "Network username and password" "Please enter a username and password for the network"
-  !insertmacro INSTALLOPTIONS_WRITE "NetworkUserSettings.ini" "Field 4" "State" $NetworkUsername
-  !insertmacro INSTALLOPTIONS_WRITE "NetworkUserSettings.ini" "Field 5" "State" $NetworkPassword
-  !insertmacro INSTALLOPTIONS_DISPLAY "NetworkUserSettings.ini"
-FunctionEnd
-Function NetworkUserPageCallback
-  !insertmacro INSTALLOPTIONS_READ $NetworkUsername "NetworkUserSettings.ini" "Field 4" "State"
-  !insertmacro INSTALLOPTIONS_READ $NetworkPassword "NetworkUserSettings.ini" "Field 5" "State"
-FunctionEnd
 
 #
 # General Attributes
@@ -441,6 +402,45 @@ Section "Wpkg-GP Administrative Template for Group Policies" Section2
   SetOutPath $WINDIR\INF
   File src\Wpkg-GP.adm
 SectionEnd
+
+Function WpkgSettingsPage
+  ${IfNot} ${SectionIsSelected} ${Section1}
+    Abort
+  ${Endif}
+  !insertmacro MUI_HEADER_TEXT "Path to Wpkg.js" "Please enter the path to your wpkg.js"
+  !insertmacro INSTALLOPTIONS_WRITE "WpkgSettings.ini" "Field 3" "State" $WpkgCommand
+  !insertmacro INSTALLOPTIONS_DISPLAY "WpkgSettings.ini"
+FunctionEnd
+Function WpkgSettingsPageCallback
+  !insertmacro INSTALLOPTIONS_READ $WpkgCommand "WpkgSettings.ini" "Field 3" "State"
+FunctionEnd
+
+Function GroupPolicySettingsPage
+  ${IfNot} ${SectionIsSelected} ${Section1}
+    Abort
+  ${Endif}
+  !insertmacro MUI_HEADER_TEXT "Group Policy settings" ""
+  !insertmacro INSTALLOPTIONS_WRITE "GroupPolicySettings.ini" "Field 3" "State" $EnableViaLGP
+  !insertmacro INSTALLOPTIONS_DISPLAY "GroupPolicySettings.ini"
+FunctionEnd
+Function GroupPolicySettingsPageCallback
+  !insertmacro INSTALLOPTIONS_READ $EnableViaLGP "GroupPolicySettings.ini" "Field 3" "State"
+FunctionEnd
+
+Function NetworkUserPage
+  ${IfNot} ${SectionIsSelected} ${Section1}
+    Abort
+  ${Endif}
+  !insertmacro MUI_HEADER_TEXT "Network username and password" "Please enter a username and password for the network"
+  !insertmacro INSTALLOPTIONS_WRITE "NetworkUserSettings.ini" "Field 4" "State" $NetworkUsername
+  !insertmacro INSTALLOPTIONS_WRITE "NetworkUserSettings.ini" "Field 5" "State" $NetworkPassword
+  !insertmacro INSTALLOPTIONS_DISPLAY "NetworkUserSettings.ini"
+FunctionEnd
+Function NetworkUserPageCallback
+  !insertmacro INSTALLOPTIONS_READ $NetworkUsername "NetworkUserSettings.ini" "Field 4" "State"
+  !insertmacro INSTALLOPTIONS_READ $NetworkPassword "NetworkUserSettings.ini" "Field 5" "State"
+FunctionEnd
+
 
 # For Modern UI tooltips
 LangString DESC_Section1 ${LANG_ENGLISH} "Install the Wpkg-GP client files"
