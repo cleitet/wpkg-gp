@@ -53,8 +53,26 @@ CATEGORY "WPKG"
 		
 		PART !!WpkgExecuteByNonAdminsTip1 TEXT
 		END PART
-		PART "Allow" DROPDOWNLIST
+		PART !!WpkgExecuteByNonAdminsTip2 TEXT
+		END PART
+		PART !!WpkgExecuteByNonAdminsTip3 TEXT
+		END PART
+		PART !!WpkgExecuteByNonAdminsTip4 TEXT
+		END PART
+		PART "Allow execution by non-admins" DROPDOWNLIST
 			ValueName "WpkgExecuteByNonAdmins"
+			ITEMLIST
+				NAME "Yes" VALUE "1"
+				NAME "No" VALUE "0"
+			END ITEMLIST
+		END PART
+		
+		PART !!WpkgExecuteByLocalUsersTip1 TEXT
+		END PART
+		PART !!WpkgExecuteByLocalUsersTip2 TEXT
+		END PART
+		PART "Allow execution by normal users" DROPDOWNLIST
+			ValueName "WpkgExecuteByLocalUsers"
 			ITEMLIST
 				NAME "Yes" VALUE "1"
 				NAME "No" VALUE "0"
@@ -82,4 +100,10 @@ WpkgMaxRebootsTip2="The default is 10 and the maximum is 1,000"
 
 WpkgRebootPolicyTip1="Whether Wpkg-GP should initialize a reboot when required, or not."
 
-WpkgExecuteByNonAdminsTip1="Configure whether users not in local administrator's group should be able to execute Wpkg-GP"
+WpkgExecuteByNonAdminsTip1="Configure whether users not in local administrator's group"
+WpkgExecuteByNonAdminsTip2="should be able to execute Wpkg-GP. This means that users"
+WpkgExecuteByNonAdminsTip3="on other computers that is a member of the local administrators"
+WpkgExecuteByNonAdminsTip4="group on this computer can execute Wpkg-GP."
+
+WpkgExecuteByLocalUsersTip1="Configure whether all local users on the computer should be able to execute Wpkg-GP."
+WpkgExecuteByLocalUsersTip2="This is necessary for the users to initiate installation of software themselves."

@@ -102,28 +102,54 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
         sa.SetSecurityDescriptorDacl(1, acl, 0)
         return sa
 
-    def CheckIfClientIsLocalAdministrator(self, handle):
+    def CheckIfClientIsAllowedToExecute(self, handle):
         # Check security
         self.logger.debug("Checking client acccess")
         ImpersonateNamedPipeClient(handle)
         token = OpenThreadToken(GetCurrentThread(), TOKEN_ALL_ACCESS, 1)
         groups = GetTokenInformation(token, TokenGroups)
+        is_local_admin = False
+        is_local_user = False
         for group in groups:
             try:
                 user, domain, attribue = LookupAccountSid (None, group[0])
+                print user, domain
                 if user == "Administrators":
                     self.logger.debug("Client is a member of Administrators group")
-                    RevertToSelf()
-                    return True
+                    is_local_admin = True
+                if domain == "CONSOLE LOGON":
+                    self.logger.debug("Client is a local user")
+                    is_local_user == True
             except error as (n, f, d):
                 if n == 1332: # No mapping between account names and security ID
                     pass
                 else:
                     RevertToSelf()
                     raise
-        self.logger.debug("Client is not a member of Administrators group")
+
         RevertToSelf()
-        return False
+        
+        execute_by_nonadmins = self.config.get("WpkgExecuteByNonAdmins")
+        self.logger.debug("WpkgExecuteByNonAdmins is %i" % execute_by_nonadmins)
+
+        execute_by_local_users = self.config.get("WpkgExecuteByLocalUsers")
+        self.logger.debug("WpkgExecuteByLocalUsers is %i" % execute_by_local_users)
+
+        allow_execution = False
+        
+        if execute_by_nonadmins == 0 and is_local_admin:
+            self.logger.debug("Client user is administrator, permission is granted")
+            allow_execution = True
+        elif execute_by_nonadmins == 1:
+            self.logger.debug("All users may access the service, persmission is granted")
+            allow_execution = True
+        elif (execute_by_local_users == 1 and is_local_user):
+            self.logger.debug("Client user is local user, permission is granted")
+            allow_execution = True
+        else:
+            self.logger.debug("Permission to execute is not given.")
+            allow_execution = False
+        return allow_execution
     
     def DoProcessClient(self, pipeHandle, tid):
         self.logger.debug("DoProcessClient() start")
@@ -152,17 +178,16 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
                     servicemanager.LogErrorMsg(msg)
                     WriteFile(pipeHandle, msg.encode('ascii'))
                 else:
-                    execute_by_nonadmins = self.config.get("WpkgExecuteByNonAdmins")
                     if d == b"Execute":
                         self.logger.info("Received 'Execute', executing WPKG")
-                        if execute_by_nonadmins == 1 or self.CheckIfClientIsLocalAdministrator(pipeHandle):
+                        if self.CheckIfClientIsAllowedToExecute(pipeHandle):
                             self.WpkgExecuter.Execute(pipeHandle)
                         else:
                             self.logger.info("The user trying to execute Wpkg-GP is not a member of local administrators group")
                             WriteFile(pipeHandle, "200 You are not authorized to execute Wpkg-GP".encode('ascii'))
                     elif d == b"Cancel":
                         self.logger.info("Received 'Cancel', cancelling WPKG")
-                        if execute_by_nonadmins == 1 or self.CheckIfClientIsLocalAdministrator(pipeHandle):
+                        if self.CheckIfClientIsAllowedToExecute(pipeHandle):
                             self.WpkgExecuter.Cancel(pipeHandle)
                         else:
                             self.logger.info("The user trying to execute Wpkg-GP is not a member of local administrators group")
