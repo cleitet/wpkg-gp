@@ -264,6 +264,7 @@ Section "Wpkg-GP Client" Section1
   Call F_File
   # Install Wpkg-GP.dll GPE
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED src\gpe\${PLATFORM}\Release\WPKG-gp.dll $INSTDIR\Wpkg-GP.dll $INSTDIR
+  !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED src\gpe\${PLATFORM}\Release\WPKG-GP-Test.exe $INSTDIR\Wpkg-GP-Test.exe $INSTDIR
 
 
   CreateDirectory $INSTDIR\Microsoft.VC90.CRT
