@@ -73,7 +73,7 @@ class WpkgNetworkHandler(object):
 
 if __name__ == '__main__':
     import sys
-    logger = logging.getLogger("WpkgService")
+    logger = logging.getLogger("WpkgNetworkHandler")
     handler = logger.addHandler(logging.StreamHandler(sys.stdout))
     logger.setLevel(logging.DEBUG)
     network_handler = WpkgNetworkHandler()
@@ -84,5 +84,5 @@ if __name__ == '__main__':
     network_handler.disconnect_from_network_share()
 else:
     h = NullHandler()
-    logger = logging.getLogger("WpkgExecuter")
+    logger = logging.getLogger("WpkgService")
     logger.addHandler(h)
