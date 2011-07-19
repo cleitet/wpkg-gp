@@ -1,12 +1,12 @@
 @echo off
-SET VERSION=0.11
+SET VERSION=0.12
 IF "%PROCESSOR_ARCHITECTURE%"=="x86" (
   SET NSIS="%ProgramFiles%\NSIS\makensis.exe"
   SET PYTHON32="c:\python26\python.exe"
 ) ELSE (
   SET NSIS="%ProgramFiles(x86)%\NSIS\makensis.exe"
-  SET PYTHON32="c:\python26 (x86)\python.exe"
-  SET PYTHON64="c:\python26 (x64)\python.exe"
+  SET PYTHON32="c:\python27 (x86)\python.exe"
+  SET PYTHON64="c:\python27 (x64)\python.exe"
 )
 
 cd %~dp0
