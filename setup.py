@@ -6,7 +6,7 @@ import os
 version = os.environ.get("version")
 architecture = os.environ.get("arch")
 company_name = "The WPKG-GP Team (http://wpkg-gp.googlecode.com)"
-copyright = "Copyright 2010 The WPKG-GP team"
+copyright = "Copyright 2010, 2011 The WPKG-GP team"
 
 
 class Target:
@@ -21,6 +21,12 @@ WpkgPipeClient = Target(
     name = "WPKG-GP Command Line Pipe Client",
     script = "src\WpkgPipeClient.py"
  )
+
+MakeMSI = Target(
+    description = "Tool for generating MSI files",
+    name = "MakeMSI tool",
+    script = "src\MakeMSI.py"
+)
 
 
 WpkgServer = Target(
@@ -41,5 +47,6 @@ setup(
     packages = [''],
     #data_files=data_files,
     service = [WpkgServer],
-    options={"py2exe":{"dll_excludes":[ "mswsock.dll", "powrprof.dll" ]}},
-    console=[WpkgPipeClient])
+    options = {"py2exe":{"dll_excludes":[ "mswsock.dll", "powrprof.dll" ]}},
+    console = [WpkgPipeClient, MakeMSI]
+)

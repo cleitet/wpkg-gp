@@ -404,6 +404,13 @@ Section "Wpkg-GP Administrative Template for Group Policies" Section2
   File src\Wpkg-GP.adm
 SectionEnd
 
+Section "Wpkg-GP MSI tool" Section3
+  File dist-${PLATFORM}\MakeMSI.exe
+  SetOutPath $INSTDIR\MSI
+  File src\MSI\wpkg-gp_x64.msitemplate
+  File src\MSI\wpkg-gp_x86.msitemplate
+SectionEnd
+
 Function WpkgSettingsPage
   ${IfNot} ${SectionIsSelected} ${Section1}
     Abort
@@ -489,6 +496,7 @@ section "uninstall"
   RMDir /r $INSTDIR\Logs
   RMDir /r $INSTDIR\Microsoft.VC90.CRT
   RMDir /r $INSTDIR\New
+  RMDir /r $INSTDIR\MSI
   RMDir /r $INSTDIR\VC++2010Redist
   RMDir $INSTDIR
 
