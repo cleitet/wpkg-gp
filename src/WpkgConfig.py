@@ -27,6 +27,7 @@ class WpkgConfig(object):
             self.ignore_policy = int(self.WpkgConfig["IgnoreGroupPolicy"])
         except KeyError:
             self.ignore_policy = 0
+        self.EnvironmentVariables = WpkgEnvironmentVariables(self)
         
         self.settings = [
             WpkgSetting(self, "WpkgCommand", None, "string", True),
@@ -133,10 +134,26 @@ class WpkgPasswordSetting(WpkgSetting):
         base64_password = base64.b64encode(encrypted_password)
         value = "crypt:%s" % base64_password
         self.caller.WpkgConfig[self.name] = value
-        self.caller.configobj.write()
+        self.caller.configobj.write()                               
+
+class WpkgEnvironmentVariables(object):
+    def __init__(self, caller):
+        self.caller = caller
+    def get(self):
+        config = self.caller.configobj
+        try:
+            logger.debug("Reading EnvironmentVariables from ini file")
+            for k, v in config['EnvironmentVariables'].items():
+                logger.debug("EnvrionmentVariable %s is '%s'" % (k, v))
+            return config['EnvironmentVariables']
+        except KeyError:
+            logger.debug("EnvironmentVariables section not configured in ini file")
+
 
 def main():
     config = WpkgConfig()
+    print config.EnvironmentVariables.get()
+        
     for setting in config.settings:
         print "%s is %s" % (setting.name, setting.get())
 

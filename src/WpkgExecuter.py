@@ -20,8 +20,8 @@ class WpkgExecuter():
     is_running = False
     
     def __init__(self, handle=None):
-        config = WpkgConfig.WpkgConfig()
-        self.wpkg_command = config.get("WpkgCommand")
+        self.config = WpkgConfig.WpkgConfig()
+        self.wpkg_command = self.config.get("WpkgCommand")
         self.writer = WpkgWriter.WpkgWriter(handle)
         self.network_handler = WpkgNetworkHandler.WpkgNetworkHandler()
         self.parser = WpkgOutputParser.WpkgOutputParser()
@@ -77,8 +77,14 @@ class WpkgExecuter():
         #Open the network share as another user, if necessary
         self.network_handler.connect_to_network_share()
 
-        # Run WPKG        
-        self.proc = subprocess.Popen(self.execute_command, stdout=subprocess.PIPE, universal_newlines=True)
+        # Add environment parameters
+        env = os.environ.copy()
+        config_env = self.config.EnvironmentVariables.get()
+        if config_env != None:
+            env.update(config_env)
+        
+        # Run WPKG
+        self.proc = subprocess.Popen(self.execute_command, stdout=subprocess.PIPE, universal_newlines=True, env=env)
         logger.info(R"Executed WPKG with the command %s" % self.execute_command)
 
         #Reading lines
