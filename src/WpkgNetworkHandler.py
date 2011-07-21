@@ -55,6 +55,8 @@ class WpkgNetworkHandler(object):
                 self.connected = False
                 if n == 1326: #Logon failure
                     logger.error("Could not log on the network with the username: %s\n The error was: %s Continuing to log on to share as service user" % (network_username, e))
+                elif n == 1219: # Multiple connections from same user
+                    logger.info("Tried to connect to share '%s', but a connection already exists." % self.network_share)
                 else:
                     raise
 
