@@ -54,7 +54,7 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
         except WindowsError:
             pass
         logfile = os.path.join(logdir, "WpkgService.log")
-        handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=200000, backupCount="2")
+        handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=200000, backupCount=2)
         
         if verbosity == 3:
             log_level = logging.DEBUG
