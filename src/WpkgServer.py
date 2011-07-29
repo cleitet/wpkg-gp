@@ -113,12 +113,13 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
         for group in groups:
             try:
                 user, domain, attribue = LookupAccountSid (None, group[0])
+                #self.logger.debug(user)
                 if user == "Administrators":
                     self.logger.debug("Client is a member of Administrators group")
                     is_local_admin = True
-                if domain == "CONSOLE LOGON":
+                if user == "CONSOLE LOGON":
                     self.logger.debug("Client is a local user")
-                    is_local_user == True
+                    is_local_user = True
             except error as (n, f, d):
                 if n == 1332: # No mapping between account names and security ID
                     pass
@@ -136,13 +137,13 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
 
         allow_execution = False
         
-        if execute_by_nonadmins == 0 and is_local_admin:
-            self.logger.debug("Client user is administrator, permission is granted")
+        if is_local_admin:
+            self.logger.debug("Client user is a member of Administrators group, permission is granted")
             allow_execution = True
         elif execute_by_nonadmins == 1:
             self.logger.debug("All users may access the service, persmission is granted")
             allow_execution = True
-        elif (execute_by_local_users == 1 and is_local_user):
+        elif execute_by_local_users == 1 and is_local_user:
             self.logger.debug("Client user is local user, permission is granted")
             allow_execution = True
         else:
@@ -182,14 +183,14 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
                         if self.CheckIfClientIsAllowedToExecute(pipeHandle):
                             self.WpkgExecuter.Execute(pipeHandle)
                         else:
-                            self.logger.info("The user trying to execute Wpkg-GP is not a member of local administrators group")
+                            self.logger.info("The user trying to execute Wpkg-GP is not authorized to do so")
                             WriteFile(pipeHandle, "200 You are not authorized to execute Wpkg-GP".encode('ascii'))
                     elif d == b"Cancel":
                         self.logger.info("Received 'Cancel', cancelling WPKG")
                         if self.CheckIfClientIsAllowedToExecute(pipeHandle):
                             self.WpkgExecuter.Cancel(pipeHandle)
                         else:
-                            self.logger.info("The user trying to execute Wpkg-GP is not a member of local administrators group")
+                            self.logger.info("The user trying to execute Wpkg-GP is not authorized to do so")
                             WriteFile(pipeHandle, "200 You are not authorized to execute Wpkg-GP".encode('ascii'))
                     else:
                         msg = "203 Unknown command: %s" % d
