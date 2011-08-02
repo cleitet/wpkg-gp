@@ -21,6 +21,10 @@ import _winreg, logging, logging.handlers
 import os.path, sys
 
 MY_PIPE_NAME = r"\\.\pipe\WPKG"
+# From http://msdn.microsoft.com/en-us/library/aa379649%28VS.85%29.aspx
+SID_LOCAL = "S-1-2-0"
+SID_ADMINISTRATORS = "S-1-5-32-544"
+
 
 def ApplyIgnoreError(fn, args):
     try:
@@ -111,13 +115,17 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
         is_local_admin = False
         is_local_user = False
         for group in groups:
+            group_sid = group[0]
             try:
-                user, domain, attribue = LookupAccountSid (None, group[0])
-                #self.logger.debug(user)
-                if user == "Administrators":
+                user, domain, type = LookupAccountSid (None, group_sid)
+                self.logger.debug(user)
+                administrators_sid = GetBinarySid(SID_ADMINISTRATORS)
+                local_sid = GetBinarySid(SID_LOCAL)
+                
+                if ConvertSidToStringSid(group_sid) == ConvertSidToStringSid(administrators_sid):
                     self.logger.debug("Client is a member of Administrators group")
                     is_local_admin = True
-                if user == "CONSOLE LOGON":
+                if ConvertSidToStringSid(group_sid) == ConvertSidToStringSid(local_sid):
                     self.logger.debug("Client is a local user")
                     is_local_user = True
             except error as (n, f, d):
