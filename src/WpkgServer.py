@@ -118,7 +118,7 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
             group_sid = group[0]
             try:
                 user, domain, type = LookupAccountSid (None, group_sid)
-                self.logger.debug(user)
+                #self.logger.debug(user)
                 administrators_sid = GetBinarySid(SID_ADMINISTRATORS)
                 local_sid = GetBinarySid(SID_LOCAL)
                 
