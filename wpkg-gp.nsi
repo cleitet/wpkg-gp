@@ -308,6 +308,7 @@ Section "Wpkg-GP Client" Section1
     ${Else}
       DetailPrint "This is a new install, and /INI is $INI. Will use the provided file."
       CopyFiles /SILENT $INI $INSTDIR
+      Rename $INSTDIR\$INI $INSTDIR\Wpkg-gp.ini
       File /oname=Default_Wpkg-GP.ini "Wpkg-GP.ini"
     ${EndIf}
   ${Else}
