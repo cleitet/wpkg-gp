@@ -40,7 +40,8 @@ class WpkgConfig(object):
             WpkgSetting(self, "WpkgNetworkUsername"),
             WpkgPasswordSetting(self, "WpkgNetworkPassword", None, "password"),
             WpkgSetting(self, "WpkgExecuteByNonAdmins", 0, "int"),
-            WpkgSetting(self, "WpkgExecuteByLocalUsers", 1, "int")
+            WpkgSetting(self, "WpkgExecuteByLocalUsers", 1, "int"),
+            WpkgSetting(self, "WpkgActivityIndicator", 1, "int")
             ]
     def get(self, name):
         for i in self.settings:

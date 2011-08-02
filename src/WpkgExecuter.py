@@ -9,6 +9,18 @@ import WpkgOutputParser
 import WpkgRebootHandler
 import logging
 import sys, os, csv, subprocess
+try:
+    from Queue import Queue, Empty
+except ImportError:
+    from queue import Queue, Empty  # python 3.x
+from threading import Thread
+
+
+def enqueue_output(out, queue):
+    for line in iter(out.readline, ''):
+        queue.put(line)
+    out.close()
+
 
 class NullHandler(logging.Handler):
     def emit(self, record):
@@ -27,6 +39,7 @@ class WpkgExecuter():
         self.parser = WpkgOutputParser.WpkgOutputParser()
         self.reboot_handler = WpkgRebootHandler.WpkgRebootHandler()
         self.parse_wpkg_command()
+        self.activityvalue = 0
     
     def parse_wpkg_command(self):
         commandstring = self.wpkg_command
@@ -71,7 +84,8 @@ class WpkgExecuter():
             return
 
         self.isrunning = True
-        self.writer.Write("100 Initializing Wpkg-GP software installation")
+        parsedline = "100 Initializing Wpkg-GP software installation"
+        self.writer.Write(parsedline)
         logger.info(R"Executing WPKG with the command %s" % self.execute_command)
         
         #Open the network share as another user, if necessary
@@ -84,25 +98,34 @@ class WpkgExecuter():
             env.update(config_env)
         
         # Run WPKG
-        self.proc = subprocess.Popen(self.execute_command, stdout=subprocess.PIPE, universal_newlines=True, env=env)
+        self.proc = subprocess.Popen(self.execute_command, stdout=subprocess.PIPE, bufsize=1, universal_newlines=True, env=env)
         logger.info(R"Executed WPKG with the command %s" % self.execute_command)
+        
+        q = Queue()
+        t = Thread(target=enqueue_output, args=(self.proc.stdout, q))
+        t.daemon = True
+        t.start()
 
         #Reading lines
         while 1:
-            line = self.proc.stdout.readline()#.decode(sys.stdin.encoding)
-            if not line: #If it is the last line an empty line is returned from readline()
-                #We are finished for now
+            try:
+                line = q.get(timeout=1)
+            except Empty:
+               if self.config.get("WpkgActivityIndicator") == 1:
+                    self.writer.Write("100 %s%s" % (parsedline, self.GetActivityIndicator()))
+            else:
+                lines.append(line)
+                self.parser.parse_line(line)
+                if self.parser.updated:
+                    parsedline = self.parser.get_formatted_line()
+                    self.writer.Write("100 %s" % (parsedline))
+            if self.proc.poll() != None: #Wpkg is finished
                 self.is_running = False
                 break
-            logger.debug(R"WPKG command returned: %s" % line)
-            lines.append(line)
-            self.parser.parse_line(line)
-            # If line is updated, print it
-            if self.parser.updated:
-                self.writer.Write("100 %s" % self.parser.get_formatted_line())
+            
         self.parser.reset()
         
-        exitcode = self.proc.wait()
+        exitcode = self.proc.poll()
         #Closing handle to share
         self.network_handler.disconnect_from_network_share()
             
@@ -130,6 +153,20 @@ class WpkgExecuter():
             self.writer.Write(handle, msg)
         except TypeError: #Maybe pipe is closed now
             pass
+    
+    def GetActivityIndicator(self):
+        mod = self.activityvalue % 5
+        self.activityvalue = mod + 1
+        if mod== 0:
+            return "..."
+        if mod == 1:
+            return " ..."
+        if mod == 2:
+            return "  ..."
+        if mod == 3:
+            return "   ..."
+        if mod == 4:
+            return "    ..."
 
 if __name__=='__main__':
     import sys
