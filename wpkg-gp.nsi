@@ -192,7 +192,7 @@ Function .onInit
   Var /GLOBAL PreviousVersion
   ClearErrors
   ReadRegStr $PreviousVersion HKLM "${PRODUCT_UNINST_KEY}" "DisplayVersion"
-  ${If} ${Errors}
+  ${If} $PreviousVersion == ""
     StrCpy $IsUpgrade 0
   ${Else}
     StrCpy $IsUpgrade 1
@@ -211,7 +211,21 @@ Function .onInit
     StrCpy $EnableViaLGP 1
   ${EndIf}
   
-  # Read INI settings from provided INI file
+  # Check for INI file to be able to extract the file
+  # It seems that ReadINIStr does not work correctly when reading a file without absolute path
+  ClearErrors
+  ReadINIStr $WpkgCommand $INI "WpkgConfig" "WpkgCommand"
+  ${If} ${Errors}
+  ${AndIf} $INI != ""
+    #Maybe the INI file is in the Current Directory
+    System::Call "kernel32::GetCurrentDirectory(i ${NSIS_MAX_STRLEN}, t .r0)"
+    StrCpy $INI "$0\$INI"
+    ${IfNot} ${FileExists} $INI
+      Abort "Could not open ini file: $INI"
+    ${EndIF}
+  ${EndIf}
+  
+   # Read INI settings from provided INI file
   ${If} $INI != ""
     ${If} $WpkgCommand == ""
       ReadINIStr $WpkgCommand $INI "WpkgConfig" "WpkgCommand"
@@ -240,11 +254,21 @@ Function .onInit
 FunctionEnd
 
 Section "Wpkg-GP Client" Section1
+
   # Remove old install.log
   Delete "$INSTDIR\install.log"
   LogSet on
   
-  DetailPrint "Installed version of ${PRODUCT_NAME} is: $PreviousVersion"
+  # Initial checks
+  ${If} $WpkgCommand == ""
+    Abort "Cannot have a empty WpkgCommand"
+  ${EndIf}
+  
+  ${If} $IsUpgrade == 1
+    DetailPrint "Installed version of ${PRODUCT_NAME} is: $PreviousVersion"
+  ${Else}
+    DetailPrint "This is a new install"
+  ${EndIf}
 
 # Does not work on service upgrading itself
 #  ${If} $IsUpgrade == 1
@@ -261,11 +285,14 @@ Section "Wpkg-GP Client" Section1
   
   # Install files
   SetOutPath $INSTDIR
+
+  # Loging is too verbose now
+  LogSet off
   Call F_File
   # Install Wpkg-GP.dll GPE
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED src\gpe\${PLATFORM}\Release\WPKG-gp.dll $INSTDIR\Wpkg-GP.dll $INSTDIR
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED src\gpe\${PLATFORM}\Release\WPKG-GP-Test.exe $INSTDIR\Wpkg-GP-Test.exe $INSTDIR
-
+  LogSet on
 
   CreateDirectory $INSTDIR\Microsoft.VC90.CRT
   SetOutPath $INSTDIR\Microsoft.VC90.CRT
@@ -301,29 +328,29 @@ Section "Wpkg-GP Client" Section1
   ${EndIf}
 
   SetOutPath "$INSTDIR"
-  ${If} IsUpgrade == 0
+  ${If} $IsUpgrade == 0
     ${If} $INI == ""
       DetailPrint "This is a new install, and no /INI provided. Will use default Wpkg-GP.ini file"
       File "Wpkg-GP.ini"
     ${Else}
       DetailPrint "This is a new install, and /INI is $INI. Will use the provided file."
-      CopyFiles /SILENT $INI $INSTDIR
-      Rename $INSTDIR\$INI $INSTDIR\Wpkg-gp.ini
-      File /oname=Default_Wpkg-GP.ini "Wpkg-GP.ini"
+      CopyFiles /SILENT $INI $INSTDIR\Wpkg-gp.ini
+      File /oname=Wpkg-GP_Default.ini "Wpkg-GP.ini"
     ${EndIf}
   ${Else}
     ${If} $INI == ""
       DetailPrint "This is a upgrade, and no /INI is provided, checking for an existing Wpkg-GP.ini file."
       ${If} ${FileExists} $INSTDIR\Wpkg-GP.ini
         DetailPrint "File exists, will keep it"
-        File /oname=Default_Wpkg-GP.ini "Wpkg-GP.ini"
+        File /oname=Wpkg-GP_Default.ini "Wpkg-GP.ini"
       ${Else}
         DetailPrint "No INI file found, will use the default one."
         File "Wpkg-GP.ini"
       ${EndIf}
     ${Else}
       DetailPrint "This is a upgrade, and /INI is $INI, will use this file."
-      CopyFiles /SILENT $INI $INSTDIR
+      Rename $INSTDIR\Wpkg-GP.ini $INSTDIR\Wpkg-GP_Old.ini
+      CopyFiles /SILENT $INI $INSTDIR\Wpkg-gp.ini
       File /oname=Default_Wpkg-GP.ini "Wpkg-GP.ini"
     ${EndIf}
   ${EndIf}
@@ -406,6 +433,7 @@ Section "Wpkg-GP Administrative Template for Group Policies" Section2
 SectionEnd
 
 Section "Wpkg-GP MSI tool" Section3
+  SetOutPath $INSTDIR
   File dist-${PLATFORM}\MakeMSI.exe
   SetOutPath $INSTDIR\MSI
   File src\MSI\wpkg-gp_x64.msitemplate
@@ -422,6 +450,14 @@ Function WpkgSettingsPage
 FunctionEnd
 Function WpkgSettingsPageCallback
   !insertmacro INSTALLOPTIONS_READ $WpkgCommand "WpkgSettings.ini" "Field 3" "State"
+  ${If} $WpkgCommand == ""
+    SetCtlColors $WpkgCommand 0x000000 0xFF0000
+    MessageBox MB_OK "Wpkg path cannot be empty" /SD IDOK
+    Abort
+  ${Else}
+    SetCtlColors $WpkgCommand 0x000000 0xFFFFFF
+  ${EndIf}
+
 FunctionEnd
 
 Function GroupPolicySettingsPage
@@ -490,9 +526,10 @@ section "uninstall"
   Delete $INSTDIR\WpkgPipeClient.exe
   Delete $INSTDIR\uninstall.exe
   Delete $INSTDIR\wpkg-gp.dll
-  Delete $INSTDIR\wpkg-gp.ini
+  Delete $INSTDIR\Wpkg-GP.INI
+  Delete $INSTDIR\Wpkg-GP_Old.INI
+  Delete $INSTDIR\Wpkg-GP_Default.INI
   Delete $INSTDIR\install.log
-  Delete $INSTDIR\Default_Wpkg-GP.ini
   Delete $WINDIR\INF\Wpkg-GP.adm
   RMDir /r $INSTDIR\Logs
   RMDir /r $INSTDIR\Microsoft.VC90.CRT
