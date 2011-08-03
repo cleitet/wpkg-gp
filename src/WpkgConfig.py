@@ -36,7 +36,7 @@ class WpkgConfig(object):
             WpkgSetting(self, "WpkgRebootPolicy", "force"),
             WpkgSetting(self, "WpkgTimeout", 15, "int"),
             WpkgSetting(self, "InstallOnShutdown", 1, "int"),
-            WpkgSetting(self, "EnableViaLGP", 0, "int"),
+            WpkgSetting(self, "EnableViaLGP", 1, "int"),
             WpkgSetting(self, "WpkgNetworkUsername"),
             WpkgPasswordSetting(self, "WpkgNetworkPassword", None, "password"),
             WpkgSetting(self, "WpkgExecuteByNonAdmins", 0, "int"),

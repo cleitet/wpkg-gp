@@ -8,7 +8,7 @@
 # /NetworkUsername Username - Use this username (Overrides INI settings)
 # /NetworkPassword Username - Use this password (Overrides INI settings)
 # /WpkgCommand Path_to_wpkg.js [/extra_switches ...] - Use this path to wpkg.js (Overrides INI settings)
-# /EnableViaLGP Run Wpkg-GP via local group policies
+# /DisableViaLGP
 
 # Exit codes:
 # 0: OK
@@ -47,7 +47,7 @@ Var /GLOBAL CURRENTPLATFORM
 Var /GLOBAL NetworkUsername
 Var /GLOBAL NetworkPassword
 Var /GLOBAL WpkgCommand
-Var /GLOBAL EnableViaLGP
+Var /GLOBAL DisableViaLGP
 Var /GLOBAL INI
 
 # Dynamic file lists
@@ -129,7 +129,7 @@ Function Usage
   StrCpy $0 "$0     /WpkgCommand \\srv01\install\wpkg.js$\r$\n"
   StrCpy $0 '$0     /WpkgCommand "\\srv01\path with space\wpkg.js"$\r$\n'
   StrCpy $0 '$0     /WpkgCommand "\\srv01\path_to_cmd_file_with_additional_parameters.cmd"$\r$\n'
-  StrCpy $0 "$0/EnableViaLGP Run Wpkg-GP via local group policies"
+  StrCpy $0 "$0/DisableViaLGP Do not run Wpkg-GP via local group policies"
   MessageBox MB_OK $0
   pop $0
 FunctionEnd
@@ -206,9 +206,9 @@ Function .onInit
 
   # Check if EnableViaLGP flag is set
   ClearErrors
-  ${GetOptions} $R0 "/EnableViaLGP"    $R1
+  ${GetOptions} $R0 "/DisableViaLGP"    $R1
   ${IfNot} ${Errors}
-    StrCpy $EnableViaLGP 1
+    StrCpy $EnableViaLGP 0
   ${EndIf}
   
   # Check for INI file to be able to extract the file
