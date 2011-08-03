@@ -47,7 +47,7 @@ Var /GLOBAL CURRENTPLATFORM
 Var /GLOBAL NetworkUsername
 Var /GLOBAL NetworkPassword
 Var /GLOBAL WpkgCommand
-Var /GLOBAL DisableViaLGP
+Var /GLOBAL EnableViaLGP
 Var /GLOBAL INI
 
 # Dynamic file lists
@@ -61,8 +61,8 @@ Var /GLOBAL INI
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 !insertmacro MUI_PAGE_LICENSE "setup\License.rtf"
 !insertmacro MUI_PAGE_COMPONENTS
-Page custom WpkgSettingsPage WpkgSettingsPageCallback
 Page custom GroupPolicySettingsPage GroupPolicySettingsPageCallback
+Page custom WpkgSettingsPage WpkgSettingsPageCallback
 Page custom NetworkUserPage NetworkUserPageCallback
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
@@ -247,6 +247,10 @@ Function .onInit
       ReadINIStr $NetworkUsername $INSTDIR\Wpkg-GP.ini "WpkgConfig" "WpkgNetworkUsername"
     ${EndIf}
   ${EndIf}
+  
+  ${If} $EnableViaLGP == ""
+    StrCpy $EnableViaLGP 1
+  ${EndIF}
 
   !insertmacro INSTALLOPTIONS_EXTRACT_AS "setup\WpkgSettings.ini" "WpkgSettings.ini"
   !insertmacro INSTALLOPTIONS_EXTRACT_AS "setup\GroupPolicySettings.ini" "GroupPolicySettings.ini"
@@ -261,7 +265,8 @@ Section "Wpkg-GP Client" Section1
   
   # Initial checks
   ${If} $WpkgCommand == ""
-    Abort "Cannot have a empty WpkgCommand"
+  ${AndIf} $EnableViaLGP == 1
+    Abort "Cannot have a empty WpkgCommand when not configured via Domain Group Policies."
   ${EndIf}
   
   ${If} $IsUpgrade == 1
@@ -451,6 +456,7 @@ FunctionEnd
 Function WpkgSettingsPageCallback
   !insertmacro INSTALLOPTIONS_READ $WpkgCommand "WpkgSettings.ini" "Field 3" "State"
   ${If} $WpkgCommand == ""
+  ${AndIf} $EnableViaLGP == 1
     SetCtlColors $WpkgCommand 0x000000 0xFF0000
     MessageBox MB_OK "Wpkg path cannot be empty" /SD IDOK
     Abort
