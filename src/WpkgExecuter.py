@@ -112,7 +112,7 @@ class WpkgExecuter():
                 line = q.get(timeout=1)
             except Empty:
                if self.config.get("WpkgActivityIndicator") == 1:
-                    self.writer.Write("100 %s%s" % (parsedline, self.GetActivityIndicator()))
+                    self.writer.Write("%s%s" % (parsedline, self.GetActivityIndicator()))
             else:
                 lines.append(line)
                 self.parser.parse_line(line)
