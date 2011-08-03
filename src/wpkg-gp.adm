@@ -1,48 +1,42 @@
 CLASS MACHINE
 CATEGORY "WPKG"
-	POLICY "WPKG Software installation"
+
+	POLICY "Enabling WPKG-GP Software Installation"
 		CLIENTEXT {A9B8D792-F454-11DE-BA92-FDCF56D89593}
 		KEYNAME "Software\Policies\WPKG_gp"
-		EXPLAIN !!PolHelp
-
-		PART !!WpkgCommandTip1 TEXT
-		END PART
+		EXPLAIN !!WpkgCommandTip
 		PART "WPKG command path" EDITTEXT
 			VALUENAME "WpkgCommand"
 		END PART
-
-		PART !!WpkgVerbosityTip1 TEXT
-		END PART
+	END POLICY
+	
+    POLICY "Wpkg-GP Logging settings"
+		KEYNAME "Software\Policies\WPKG_gp"
+		EXPLAIN !!WpkgVerbosityTip
 		PART "WPKG-gp Verbosity" NUMERIC DEFAULT 0 MIN 0 MAX 3 TXTCONVERT
 			ValueName "WpkgVerbosity"
 		END PART
-		
-		PART !!WpkgNetworkUsernameTip1 TEXT
-		END PART
+	END POLICY
+	
+	POLICY "Wpkg-GP Network Connection Settings"
+		KEYNAME "Software\Policies\WPKG_gp"
+		EXPLAIN !!WpkgNetworkTip 
 		PART "Wpkg-GP Network Username" EDITTEXT
 			VALUENAME "WpkgNetworkUsername"
 		END PART
 		
-		PART !!WpkgNetworkPasswordTip1 TEXT
-		END PART
-		PART !!WpkgNetworkPasswordTip2 TEXT
-		END PART
-		PART !!WpkgNetworkPasswordTip3 TEXT
-		END PART
-		PART !!WpkgNetworkPasswordTip4 TEXT
-		END PART
 		PART "Wpkg-GP Network Password" EDITTEXT
 			VALUENAME "WpkgNetworkPassword"
 		END PART
-		
-		PART !!WpkgMaxRebootsTip1 TEXT
-		END PART
+	END POLICY
+	
+	POLICY "Wpkg-GP Misc Settings"
+		KEYNAME "Software\Policies\WPKG_gp"
+		EXPLAIN !!WpkgMiscTip
 		PART "Maximum consecutive Reboots" NUMERIC DEFAULT 10 MIN 0 MAX 1000 TXTCONVERT
 			VALUENAME "WpkgMaxReboots"
 		END PART
 			
-		PART !!WpkgRebootPolicyTip1 TEXT
-		END PART
 		PART "WPKG-gp Reboot Policy" DROPDOWNLIST
 			ValueName "WpkgRebootPolicy"
 			ITEMLIST
@@ -51,14 +45,6 @@ CATEGORY "WPKG"
 			END ITEMLIST
 		END PART
 		
-		PART !!WpkgExecuteByNonAdminsTip1 TEXT
-		END PART
-		PART !!WpkgExecuteByNonAdminsTip2 TEXT
-		END PART
-		PART !!WpkgExecuteByNonAdminsTip3 TEXT
-		END PART
-		PART !!WpkgExecuteByNonAdminsTip4 TEXT
-		END PART
 		PART "Allow execution by non-admins" DROPDOWNLIST
 			ValueName "WpkgExecuteByNonAdmins"
 			ITEMLIST
@@ -67,10 +53,6 @@ CATEGORY "WPKG"
 			END ITEMLIST
 		END PART
 		
-		PART !!WpkgExecuteByLocalUsersTip1 TEXT
-		END PART
-		PART !!WpkgExecuteByLocalUsersTip2 TEXT
-		END PART
 		PART "Allow execution by normal users" DROPDOWNLIST
 			ValueName "WpkgExecuteByLocalUsers"
 			ITEMLIST
@@ -78,32 +60,20 @@ CATEGORY "WPKG"
 				NAME "No" VALUE "0"
 			END ITEMLIST
 		END PART
+		
+		PART "Show an activity indicator" DROPDOWNLIST
+			ValueName "WpkgActivityIndicator"
+			ITEMLIST
+				NAME "Yes" VALUE "1"
+				NAME "No" VALUE "0"
+			END ITEMLIST
+		END PART
+		
 	END POLICY
 END CATEGORY
 
 [Strings]
-PolHelp="Configures settings for WPKG-GP, a utility for running WPKG as a group policy. See http://wpkg-gp.googlecode.com/ for more info."
-
-WpkgCommandTip1="The path to your wpkg.js or cmd/bat script for starting WPKG."
-
-WpkgVerbosityTip1="The log level (a value between 0 and 3)."
-
-WpkgNetworkUsernameTip1="The user name WPKG will use for connecting to the network."
-
-WpkgNetworkPasswordTip1="The password WPKG will use when connecting to the network"
-WpkgNetworkPasswordTip2="WARNING: This will be saved in clear-text in the registry."
-WpkgNetworkPasswordTip3="If you want it to be encrypted, configure it via the"
-WpkgNetworkPasswordTip4="wpkg-gp.ini file instead."
-
-WpkgMaxRebootsTip1="The maximum number of consecutive reboots allowed from WPKG-gp."
-WpkgMaxRebootsTip2="The default is 10 and the maximum is 1,000"
-
-WpkgRebootPolicyTip1="Whether Wpkg-GP should initialize a reboot when required, or not."
-
-WpkgExecuteByNonAdminsTip1="Configure whether users not in local administrator's group"
-WpkgExecuteByNonAdminsTip2="should be able to execute Wpkg-GP. This means that users"
-WpkgExecuteByNonAdminsTip3="on other computers that is a member of the local administrators"
-WpkgExecuteByNonAdminsTip4="group on this computer can execute Wpkg-GP."
-
-WpkgExecuteByLocalUsersTip1="Configure whether all local users on the computer should be able to execute Wpkg-GP."
-WpkgExecuteByLocalUsersTip2="This is necessary for the users to initiate installation of software themselves."
+WpkgCommandTip="This Policy must be on for Wpkg-GP to work. Configures settings for WPKG-GP, a utility for running WPKG as a group policy. See http://wpkg-gp.googlecode.com/ for more info.\n\nThis is the path to your wpkg.js or cmd/bat script for starting WPKG."
+WpkgVerbosityTip="The log level (a value between 0 and 3)."
+WpkgNetworkTip="The user name WPKG will use for connecting to the network and the password WPKG will use when connecting to the network.\n\n WARNING: This will be saved in clear-text in the registry. If you want it to be encrypted, configure it via the wpkg-gp.ini file instead."
+WpkgMiscTip="Maximum consecutive Reboots:\nThe maximum number of consecutive reboots allowed from WPKG-gp. The default is 10 and the maximum is 1,000.\n\nReboot Policy:\nWhether Wpkg-GP should initialize a reboot when required, or not.\n\nAllow execution by non-admins:\nConfigure whether users not in local administrator's group should be able to execute Wpkg-GP. This means that users on other computers that is a member of the local administrators group on this computer can execute Wpkg-GP.\n\nAllow execution by normal users:\nConfigure whether all local users on the computer should be able to execute Wpkg-GP. This is necessary for the users to initiate installation of software themselves.\n\nShow a activity indicator:\nConfigure whether to show an activity indicator when Wpkg-GP is executing"
