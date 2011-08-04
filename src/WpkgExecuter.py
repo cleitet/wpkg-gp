@@ -130,7 +130,7 @@ class WpkgExecuter():
         self.network_handler.disconnect_from_network_share()
             
         if exitcode == 1: #Cscript returned an error
-            logger.error(R"WPKG command returned an error: %s" % lines[-1][0:-1])
+            logger.error(R"WPKG command returned an error: %s" % lines[-1:])
             self.writer.Write("200 Wpkg returned an error: %s" % lines[-1][0:-1])
             return
         
