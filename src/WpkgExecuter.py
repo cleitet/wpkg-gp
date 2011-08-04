@@ -83,7 +83,7 @@ class WpkgExecuter():
             self.writer.Write(msg)
             return
 
-        self.isrunning = True
+        
         parsedline = "Initializing Wpkg-GP software installation"
         self.writer.Write("100 " + parsedline)
         logger.info(R"Executing WPKG with the command %s" % self.execute_command)
@@ -99,8 +99,8 @@ class WpkgExecuter():
         
         # Run WPKG
         self.proc = subprocess.Popen(self.execute_command, stdout=subprocess.PIPE, bufsize=1, universal_newlines=True, env=env)
-        logger.info(R"Executed WPKG with the command %s" % self.execute_command)
-        
+        self.isrunning = True
+
         q = Queue()
         t = Thread(target=enqueue_output, args=(self.proc.stdout, q))
         t.daemon = True
@@ -110,6 +110,7 @@ class WpkgExecuter():
             show_activity = True
 
         #Reading lines
+        quit = False
         while 1:
             try:
                 line = q.get(timeout=1)
@@ -124,6 +125,8 @@ class WpkgExecuter():
                     self.writer.Write("100 %s" % (parsedline))
             if self.proc.poll() != None: #Wpkg is finished
                 self.is_running = False
+                quit = True # Run a last loop to fetch the last line
+            if quit:
                 break
             
         self.parser.reset()
@@ -131,6 +134,7 @@ class WpkgExecuter():
         exitcode = self.proc.poll()
         #Closing handle to share
         self.network_handler.disconnect_from_network_share()
+        logger.info(R"Finished executing Wpkg.js")
             
         if exitcode == 1: #Cscript returned an error
             logger.error(R"WPKG command returned an error: %s" % lines[-1:])
