@@ -119,6 +119,8 @@ class WpkgExecuter():
                     self.writer.Write("100 %s%s" % (parsedline, self.GetActivityIndicator()))
             else:
                 lines.append(line)
+                if quit:
+                    break # Now we have appended the last line
                 self.parser.parse_line(line)
                 if self.parser.updated:
                     parsedline = self.parser.get_formatted_line()
@@ -126,8 +128,6 @@ class WpkgExecuter():
             if self.proc.poll() != None: #Wpkg is finished
                 self.is_running = False
                 quit = True # Run a last loop to fetch the last line
-            if quit:
-                break
             
         self.parser.reset()
         
