@@ -106,12 +106,15 @@ class WpkgExecuter():
         t.daemon = True
         t.start()
 
+        if self.config.get("WpkgActivityIndicator") == 1:
+            show_activity = True
+
         #Reading lines
         while 1:
             try:
                 line = q.get(timeout=1)
             except Empty:
-               if self.config.get("WpkgActivityIndicator") == 1:
+               if show_activity:
                     self.writer.Write("100 %s%s" % (parsedline, self.GetActivityIndicator()))
             else:
                 lines.append(line)
