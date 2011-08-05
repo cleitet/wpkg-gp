@@ -1,5 +1,5 @@
 @echo off
-SET VERSION=0.13
+SET VERSION=0.14
 IF "%PROCESSOR_ARCHITECTURE%"=="x86" (
   SET NSIS="%ProgramFiles%\NSIS\makensis.exe"
   SET PYTHON32="c:\python26\python.exe"
