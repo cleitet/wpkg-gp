@@ -186,13 +186,17 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
                     servicemanager.LogErrorMsg(msg)
                     WriteFile(pipeHandle, msg.encode('ascii'))
                 else:
-                    if d == b"Execute":
-                        self.logger.info("Received 'Execute', executing WPKG")
-                        if self.CheckIfClientIsAllowedToExecute(pipeHandle):
-                            self.WpkgExecuter.Execute(pipeHandle)
+                    if d == b"Execute" or d == b"ExecuteFromGPE":
+                        if d == b"ExecuteFromGPE" and self.config.get("DisableAtBootUp") == 1:
+                            self.logger.info("Excution at startup is disabled, will not run".encode('ascii'))
+                            WriteFile(pipeHandle, "200 Excution at startup is disabled, will not run")
                         else:
-                            self.logger.info("The user trying to execute Wpkg-GP is not authorized to do so")
-                            WriteFile(pipeHandle, "200 You are not authorized to execute Wpkg-GP".encode('ascii'))
+                            self.logger.info("Received 'Execute', executing WPKG")
+                            if self.CheckIfClientIsAllowedToExecute(pipeHandle):
+                                self.WpkgExecuter.Execute(pipeHandle)
+                            else:
+                                self.logger.info("The user trying to execute Wpkg-GP is not authorized to do so")
+                                WriteFile(pipeHandle, "200 You are not authorized to execute Wpkg-GP".encode('ascii'))
                     elif d == b"Cancel":
                         self.logger.info("Received 'Cancel', cancelling WPKG")
                         if self.CheckIfClientIsAllowedToExecute(pipeHandle):

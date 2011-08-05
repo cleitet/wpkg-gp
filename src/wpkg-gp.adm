@@ -8,6 +8,14 @@ CATEGORY "WPKG"
 		PART "WPKG command path" EDITTEXT
 			VALUENAME "WpkgCommand"
 		END PART
+		PART "Disable" DROPDOWNLIST
+			ValueName "DisableAtBootUp"
+			ITEMLIST
+				NAME "Yes" VALUE "1"
+				NAME "No" VALUE "0"
+			END ITEMLIST
+		END PART
+
 	END POLICY
 	
     POLICY "Wpkg-GP Logging settings"
@@ -73,7 +81,7 @@ CATEGORY "WPKG"
 END CATEGORY
 
 [Strings]
-WpkgCommandTip="This Policy must be on for Wpkg-GP to work. Configures settings for WPKG-GP, a utility for running WPKG as a group policy. See http://wpkg-gp.googlecode.com/ for more info.\n\nThis is the path to your wpkg.js or cmd/bat script for starting WPKG."
+WpkgCommandTip="This Policy must be on for Wpkg-GP to work. Configures settings for WPKG-GP, a utility for running WPKG as a group policy. See http://wpkg-gp.googlecode.com/ for more info.\n\nThis is the path to your wpkg.js or cmd/bat script for starting WPKG.\n\nDisable at boot:\nDisable Wpkg-GP execution at boot."
 WpkgVerbosityTip="The log level (a value between 0 and 3)."
 WpkgNetworkTip="The user name WPKG will use for connecting to the network and the password WPKG will use when connecting to the network.\n\n WARNING: This will be saved in clear-text in the registry. If you want it to be encrypted, configure it via the wpkg-gp.ini file instead."
 WpkgMiscTip="Maximum consecutive Reboots:\nThe maximum number of consecutive reboots allowed from WPKG-gp. The default is 10 and the maximum is 1,000.\n\nReboot Policy:\nWhether Wpkg-GP should initialize a reboot when required, or not.\n\nAllow execution by non-admins:\nConfigure whether users not in local administrator's group should be able to execute Wpkg-GP. This means that users on other computers that is a member of the local administrators group on this computer can execute Wpkg-GP.\n\nAllow execution by normal users:\nConfigure whether all local users on the computer should be able to execute Wpkg-GP. This is necessary for the users to initiate installation of software themselves.\n\nShow a activity indicator:\nConfigure whether to show an activity indicator when Wpkg-GP is executing"

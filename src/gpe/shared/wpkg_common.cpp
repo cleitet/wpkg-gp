@@ -252,7 +252,7 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
     CloseServiceHandle(schSCManager);
 
 	HANDLE hPipe;
-	LPCSTR lpvMessage="Execute";
+	LPCSTR lpvMessage="ExecuteFromGPE";
 	TCHAR  chBuf[BUFSIZE];
 	TCHAR  chTempBuf[BUFSIZE];
 	wchar_t wcBuf[BUFSIZE * sizeof(wchar_t)];
