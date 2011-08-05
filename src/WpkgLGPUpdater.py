@@ -20,11 +20,17 @@ import ConfigParser
 import sys, os
 import WpkgConfig
 import _winreg
+import logging
+
 
 
 WPKGGPGUID = '{A9B8D792-F454-11DE-BA92-FDCF56D89593}'
 MMCEXTENSIONW61 = '{D02B1F72-3407-48AE-BA88-E8213C6761F1}' # I have no idea why they are different (different version of MMC?)
 MMCEXTENSIONW51 = '{0F6B957D-509E-11D1-A7CC-0000F87571E3}' # The Windows 5.1 (XP) worked on 6.1 (Windows 7) So i'll use it :)
+
+class NullHandler(logging.Handler):
+    def emit(self, record):
+        pass
 
 class WpkgLocalGPConfigurator:
     def __init__(self):
@@ -32,6 +38,7 @@ class WpkgLocalGPConfigurator:
         inifile = os.path.join(system32dir, "GroupPolicy", "gpt.ini")
         self._inifile = inifile
         self.config = ConfigParser.SafeConfigParser()
+        logger.debug("LGP: Opening %s" % inifile)
         try:
             self.config.read(self._inifile)
         except ConfigParser.Error: #file does not exist
@@ -112,8 +119,10 @@ class WpkgLocalGPConfigurator:
         EnableViaLGP = config.get("EnableViaLGP")
         if EnableViaLGP != current_setting:
             if EnableViaLGP == 1:
+                logger.debug("Adding to LGP")
                 self.addToLocalPolicies()
             else:
+                logger.debug("Removing from LGP")
                 self.removeFromLocalPolicies()
 
             with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"Software\WPKG-gp", 0, _winreg.KEY_ALL_ACCESS) as key:
@@ -146,5 +155,15 @@ def main():
         return
 
 
-if __name__ == '__main__':
+if __name__=='__main__':
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")                        
+    h = logging.StreamHandler(sys.stdout)
+    h.setFormatter(formatter)
+    logger = logging.getLogger("WpkgLGPUpdater")
+    logger.addHandler(h)
+    logger.setLevel(logging.DEBUG)
     main()
+else:
+    h = NullHandler()
+    logger = logging.getLogger("WpkgService")
+    logger.addHandler(h)
