@@ -115,7 +115,9 @@ class WpkgExecuter():
             try:
                 line = q.get(timeout=1)
             except Empty:
-               if show_activity:
+                if quit:
+                    break # Now we have appended the last line
+                if show_activity:
                     self.writer.Write("100 %s%s" % (parsedline, self.GetActivityIndicator()))
             else:
                 lines.append(line)
