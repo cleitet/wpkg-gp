@@ -62,8 +62,6 @@ class WpkgLocalGPConfigurator:
             version = 1
         #Documentation :http://technet.microsoft.com/en-us/library/cc978247.aspx
         version = int(version) + 1 #Computer policy is least significant bits
-        if version >=65536:
-            raise Error("Version in gpt.ini > 65535, this is not possible, see http://technet.microsoft.com/en-us/library/cc978247.aspx")
         self.config.set('General', 'Version', str(version))
         
     def addToLocalPolicies(self):
