@@ -43,16 +43,6 @@ class WpkgNetworkHandler(object):
         # cleaning up any stale connections
         self.disconnect_from_network_share()
 
-        if self.network_username == None:
-            logger.info("No network user configured, will not connect. Any network activity will be done by process user.")
-            self.connected = False
-            return #do not make any special connection
-        
-        if self.network_password == None:
-            logger.info("User name %s specified, but no password set, will not connect. Any network activity will be done by process user" % self.network_username)
-            self.connected = False
-            return
-
         i = 0
         tries = 6
         while self.connected != True and i <= tries:
@@ -65,8 +55,13 @@ class WpkgNetworkHandler(object):
             except win32wnet.error, (n, f, e):
                 self.connected = False
                 if n == 1326: #Logon failure
-                    logger.info("Could not log on the network with the username: %s\n The error was: %s Continuing to log on to share as service user" % (network_username, e))
-                    break
+                    if self.network_username != None:
+                        logger.info("Could not log on the network with the username: %s\n The error was: %s Continuing to try to log on to share as service user" % (network_username, e))
+                        self.network_username = None
+                        self.network_password = None
+                    else:
+                        logger.info("Could not log on to the network with Wpkg-GP service account")
+                        break
                 elif n == 1219: # Multiple connections from same user
                     logger.info("Tried to connect to share '%s', but a connection already exists." % self.network_share)
                     self.connected = True
