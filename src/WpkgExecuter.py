@@ -167,13 +167,13 @@ class WpkgExecuter():
         mod = self.activityvalue % 5
         self.activityvalue = mod + 1
         if mod== 0:
-            return "..."
+            return "...    "
         if mod == 1:
-            return " ..."
+            return " ...   "
         if mod == 2:
-            return "  ..."
+            return "  ...  "
         if mod == 3:
-            return "   ..."
+            return "   ... "
         if mod == 4:
             return "    ..."
 
