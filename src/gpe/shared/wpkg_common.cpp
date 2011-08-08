@@ -3,6 +3,7 @@
 #include <winbase.h>
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
 
 #include "wpkg_common.h"
 #include "MessageFile.h"
@@ -90,7 +91,7 @@ void UpdateStatus(int status_type, wchar_t* message, int errorCode){
 		wcscpy_s(formatedMsg, message);
 	}
 	
-
+	
 	if (status_type == LOG_INFO){
 		logMessage(EVENTLOG_INFORMATION_TYPE, formatedMsg);
 		debug(L"Info: %ls\n", formatedMsg);
@@ -98,15 +99,20 @@ void UpdateStatus(int status_type, wchar_t* message, int errorCode){
 			printf("Info: %S\n", formatedMsg);
 		if (EXECUTE_FROM_GPE)
 			gStatusCallback(FALSE, message);
-	} else {
+	} else if (status_type == LOG_ERROR)  {
 		logMessage(EVENTLOG_ERROR_TYPE, formatedMsg);
 		debug(L"Error: %ls\n", formatedMsg);
 		if (EXECUTE_FROM_EXE)
 			printf("Error: %S\n", formatedMsg);
 		if (EXECUTE_FROM_GPE)
 			gStatusCallback(FALSE, message);
+	} else if (status_type == NO_LOG) {
+		debug(L"Info, nothing to event log: %ls\n", formatedMsg);
+		if (EXECUTE_FROM_EXE)
+			printf("Info, nothing to event log: %S\n", formatedMsg);
+		if (EXECUTE_FROM_GPE)
+			gStatusCallback(FALSE, message);
 	}
-
 }
 
 DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
@@ -255,8 +261,10 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
 	LPCSTR lpvMessage="ExecuteFromGPE";
 	TCHAR  chBuf[BUFSIZE];
 	TCHAR  chTempBuf[BUFSIZE];
+	TCHAR  chStatusCodeBuf[sizeof(TCHAR)*4];
 	wchar_t wcBuf[BUFSIZE * sizeof(wchar_t)];
 	BOOL   fSuccess = FALSE;
+	BOOL   bLog = TRUE;
 	DWORD  cbRead, cbToWrite, cbWritten, dwMode;
 	LPCWSTR lpszPipename = L"\\\\.\\pipe\\WPKG";
 
@@ -336,7 +344,7 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
 			chBuf,    // buffer to receive reply 
 			BUFSIZE*sizeof(TCHAR) - 1,  // size of buffer 
 			&cbRead,  // number of bytes read 
-			NULL);    // not overlapped 
+			NULL);    // not overlapped
 
 		err = GetLastError();
 		if (err == ERROR_HANDLE_EOF){
@@ -355,9 +363,26 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
 		
 
 		debug(L"Successfully read from pipe, stripping status code\n");
+		int i;
+		
+		//Retrieve 3 first characters (status code)
+		
+
+		for (i=0; i < 3; i++){
+			chStatusCodeBuf[i] = chBuf[i];
+		}
+		chStatusCodeBuf[3] = '\0';
+
+		// If status code = 101, do not use EventVwr
+		if (strcmp(chStatusCodeBuf, "101") == 0){
+			debug(L"Retrieved Status Code 101, will not print anything to event log");
+			bLog = false;
+		} else {
+			bLog = true;
+		}
+
 		// Remove 4 first characters
 		int start = 4;
-		int i;
 		int j = 0;
 		for (i=start; chBuf[i]!='\0'; i++){
 			chTempBuf[j] = chBuf[i];
@@ -375,7 +400,11 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag){
 		debug(L"Calling UpdateStatus\n");
 		
 		//pStatusCallback(FALSE, wcBuf);
-		UpdateStatus(LOG_INFO, wcBuf, FALSE);
+		if (bLog == TRUE) {
+			UpdateStatus(LOG_INFO, wcBuf, FALSE);
+		} else {
+			UpdateStatus(NO_LOG, wcBuf, FALSE);
+		}
 	}
 
 	CloseHandle(hPipe);

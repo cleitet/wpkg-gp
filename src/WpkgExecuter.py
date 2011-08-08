@@ -118,7 +118,7 @@ class WpkgExecuter():
                 if quit:
                     break # Now we have appended the last line
                 if show_activity:
-                    self.writer.Write("100 %s%s" % (parsedline, self.GetActivityIndicator()))
+                    self.writer.Write("101 %s%s" % (parsedline, self.GetActivityIndicator()))
             else:
                 lines.append(line)
                 if quit:
