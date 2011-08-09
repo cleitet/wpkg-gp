@@ -68,7 +68,7 @@ class WpkgNetworkHandler(object):
                     break
                 elif n == 53 or n == 1231: # Network path not found | Network location cannot be reached
                     # This can indicate that the network path was wrong, or that the network is not available yet
-                    logger.info("An issue occured when conencting to '%s', the error code is %n and the error string is '%s'" % (self.network_share, n, e))
+                    logger.info("An issue occured when connecting to '%s', the error code is %i and the error string is '%s'" % (self.network_share, n, e))
                     time.sleep(5) # Sleep 5 seconds
                 else:
                     raise
