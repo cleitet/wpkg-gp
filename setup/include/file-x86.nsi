@@ -5,11 +5,9 @@ Function F_File
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\select.pyd $INSTDIR\select.pyd $INSTDIR
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\_win32sysloader.pyd $INSTDIR\_win32sysloader.pyd $INSTDIR
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\_socket.pyd $INSTDIR\_socket.pyd $INSTDIR
-  !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\API-MS-Win-Core-LocalRegistry-L1-1-0.dll $INSTDIR\API-MS-Win-Core-LocalRegistry-L1-1-0.dll $INSTDIR
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\library.zip $INSTDIR\library.zip $INSTDIR
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\win32file.pyd $INSTDIR\win32file.pyd $INSTDIR
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\w9xpopen.exe $INSTDIR\w9xpopen.exe $INSTDIR
-  !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\MPR.dll $INSTDIR\MPR.dll $INSTDIR
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\win32security.pyd $INSTDIR\win32security.pyd $INSTDIR
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\servicemanager.pyd $INSTDIR\servicemanager.pyd $INSTDIR
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\_ssl.pyd $INSTDIR\_ssl.pyd $INSTDIR

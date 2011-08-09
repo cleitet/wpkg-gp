@@ -291,6 +291,7 @@ Section "Wpkg-GP Client" Section1
   
   # Install files
   SetOutPath $INSTDIR
+  Delete /REBOOTOK $INSTDIR\MPR.dll #Causes issues on Vista
 
   # Loging is too verbose now
   LogSet off

@@ -47,6 +47,6 @@ setup(
     packages = [''],
     #data_files=data_files,
     service = [WpkgServer],
-    options = {"py2exe":{"dll_excludes":[ "mswsock.dll", "powrprof.dll" ]}},
+    options = {"py2exe":{"dll_excludes":[ "mswsock.dll", "powrprof.dll", "MPR.dll" ]}},
     console = [WpkgPipeClient, MakeMSI]
 )

@@ -5,11 +5,9 @@ Function un.F_Delete
   Delete $INSTDIR\select.pyd
   Delete $INSTDIR\_win32sysloader.pyd
   Delete $INSTDIR\_socket.pyd
-  Delete $INSTDIR\API-MS-Win-Core-LocalRegistry-L1-1-0.dll
   Delete $INSTDIR\library.zip
   Delete $INSTDIR\win32file.pyd
   Delete $INSTDIR\w9xpopen.exe
-  Delete $INSTDIR\MPR.dll
   Delete $INSTDIR\win32security.pyd
   Delete $INSTDIR\servicemanager.pyd
   Delete $INSTDIR\_ssl.pyd

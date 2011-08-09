@@ -12,7 +12,6 @@ Function F_File
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\API-MS-Win-Core-Profile-L1-1-0.dll $INSTDIR\API-MS-Win-Core-Profile-L1-1-0.dll $INSTDIR
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\library.zip $INSTDIR\library.zip $INSTDIR
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\win32file.pyd $INSTDIR\win32file.pyd $INSTDIR
-  !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\MPR.dll $INSTDIR\MPR.dll $INSTDIR
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\win32security.pyd $INSTDIR\win32security.pyd $INSTDIR
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\CRYPT32.dll $INSTDIR\CRYPT32.dll $INSTDIR
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED dist-${PLATFORM}\servicemanager.pyd $INSTDIR\servicemanager.pyd $INSTDIR

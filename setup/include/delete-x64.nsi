@@ -12,7 +12,6 @@ Function un.F_Delete
   Delete $INSTDIR\API-MS-Win-Core-Profile-L1-1-0.dll
   Delete $INSTDIR\library.zip
   Delete $INSTDIR\win32file.pyd
-  Delete $INSTDIR\MPR.dll
   Delete $INSTDIR\win32security.pyd
   Delete $INSTDIR\CRYPT32.dll
   Delete $INSTDIR\servicemanager.pyd
