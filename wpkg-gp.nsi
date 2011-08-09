@@ -40,6 +40,8 @@
 !include Library.nsh
 !include Sections.nsh
 
+
+!include "setup\include\StrContains.nsi"
 !include "setup\include\Registry.nsh"
 !include "setup\include\IsUserAdmin.nsi"
 !include "setup\include\servicelib.nsi"
@@ -50,6 +52,7 @@ Var /GLOBAL NetworkPassword
 Var /GLOBAL WpkgCommand
 Var /GLOBAL EnableViaLGP
 Var /GLOBAL INI
+Var /GLOBAL Features
 
 # Dynamic file lists
 !system "setup\include\list_files_in_dist.exe /Platform ${PLATFORM}"
@@ -130,7 +133,9 @@ Function Usage
   StrCpy $0 "$0     /WpkgCommand \\srv01\install\wpkg.js$\r$\n"
   StrCpy $0 '$0     /WpkgCommand "\\srv01\path with space\wpkg.js"$\r$\n'
   StrCpy $0 '$0     /WpkgCommand "\\srv01\path_to_cmd_file_with_additional_parameters.cmd"$\r$\n'
-  StrCpy $0 "$0/DisableViaLGP Do not run Wpkg-GP via local group policies"
+  StrCpy $0 "$0/DisableViaLGP Do not run Wpkg-GP via local group policies$\r$\n"
+  StrCpy $0 "$0/Features Client|Adm|MSITool - Install only these features$\r$\n"
+  StrCpy $0 "$0     You may select multiple features"
   MessageBox MB_OK $0
   pop $0
 FunctionEnd
@@ -204,13 +209,17 @@ Function .onInit
   ${GetOptions} $R0 "/NetworkPassword" $NetworkPassword
   ${GetOptions} $R0 "/WpkgCommand"     $WpkgCommand
   ${GetOptions} $R0 "/INI"             $INI
+  ${GetOptions} $R0 "/Features"        $Features
 
+  Call GetFeatures
+  
   # Check if EnableViaLGP flag is set
   ClearErrors
   ${GetOptions} $R0 "/DisableViaLGP"    $R1
   ${IfNot} ${Errors}
     StrCpy $EnableViaLGP 0
   ${EndIf}
+  
   
   # Check for INI file to be able to extract the file
   # It seems that ReadINIStr does not work correctly when reading a file without absolute path
@@ -258,7 +267,7 @@ Function .onInit
   !insertmacro INSTALLOPTIONS_EXTRACT_AS "setup\NetworkUserSettings.ini" "NetworkUserSettings.ini"
 FunctionEnd
 
-Section "Wpkg-GP Client" Section1
+Section "Wpkg-GP Client" Client
 
   # Remove old install.log
   Delete "$INSTDIR\install.log"
@@ -434,12 +443,12 @@ Section "Wpkg-GP Client" Section1
 
 SectionEnd
 
-Section "Wpkg-GP Administrative Template for Group Policies" Section2
+Section "Wpkg-GP Administrative Template for Group Policies" ADM
   SetOutPath $WINDIR\INF
   File src\Wpkg-GP.adm
 SectionEnd
 
-Section "Wpkg-GP MSI tool" Section3
+Section "Wpkg-GP MSI tool" MSITool
   SetOutPath $INSTDIR
   File dist-${PLATFORM}\MakeMSI.exe
   SetOutPath $INSTDIR\MSI
@@ -448,7 +457,7 @@ Section "Wpkg-GP MSI tool" Section3
 SectionEnd
 
 Function WpkgSettingsPage
-  ${IfNot} ${SectionIsSelected} ${Section1}
+  ${IfNot} ${SectionIsSelected} ${Client}
     Abort
   ${Endif}
   !insertmacro MUI_HEADER_TEXT "Path to Wpkg.js" "Please enter the path to your wpkg.js"
@@ -470,7 +479,7 @@ Function WpkgSettingsPageCallback
 FunctionEnd
 
 Function GroupPolicySettingsPage
-  ${IfNot} ${SectionIsSelected} ${Section1}
+  ${IfNot} ${SectionIsSelected} ${Client}
     Abort
   ${Endif}
   !insertmacro MUI_HEADER_TEXT "Group Policy settings" ""
@@ -482,7 +491,7 @@ Function GroupPolicySettingsPageCallback
 FunctionEnd
 
 Function NetworkUserPage
-  ${IfNot} ${SectionIsSelected} ${Section1}
+  ${IfNot} ${SectionIsSelected} ${Client}
     Abort
   ${Endif}
   !insertmacro MUI_HEADER_TEXT "Network username and password" "Please enter a username and password for the network"
@@ -497,25 +506,49 @@ FunctionEnd
 
 Function .OnSelChange
   #Section 3 requires Section 1
-  ${If} ${SectionIsSelected} ${Section3}
-    ${IfNot} ${SectionIsSelected} ${Section1}
-      SectionGetText ${Section1} $0
-      SectionGetText ${Section3} $1
+  ${If} ${SectionIsSelected} ${MSITool}
+    ${IfNot} ${SectionIsSelected} ${Client}
+      SectionGetText ${Client} $0
+      SectionGetText ${MSITool} $1
       MessageBox MB_OK "Section $1 requires Section $0 to be installed as well."
-      !insertmacro SelectSection ${Section1}
+      !insertmacro SelectSection ${Client}
+    ${EndIf}
+  ${EndIf}
+FunctionEnd
+
+Function GetFeatures
+ #Check the features:
+  #Alternatives: Client Adm MSITool
+  ${If} $Features != "" #Then install all features
+    # Do not install any features
+    !insertmacro UnselectSection ${Client}
+    !insertmacro UnselectSection ${Adm}
+    !insertmacro UnselectSection ${MSITool}
+    ${StrContains} $0 "Client" $Features
+    ${StrContains} $1 "Adm" $Features
+    ${StrContains} $2 "MSITool" $Features
+    ${If} $0 != ""
+      !insertmacro SelectSection ${Client}
+    ${EndIf}
+    ${If} $1 != ""
+      !insertmacro SelectSection ${Adm}
+    ${EndIf}
+    ${If} $2 != ""
+      !insertmacro SelectSection ${Client}
+      !insertmacro SelectSection ${MSITool}
     ${EndIf}
   ${EndIf}
 FunctionEnd
 
 # For Modern UI tooltips
-LangString DESC_Section1 ${LANG_ENGLISH} "Install the Wpkg-GP client files"
-LangString DESC_Section2 ${LANG_ENGLISH} "Install the Wpkg-GP administrative template file"
-LangString DESC_Section3 ${LANG_ENGLISH} "Install a tool for deploying Wpkg-GP via MSI files"
+LangString DESC_Client ${LANG_ENGLISH} "Install the Wpkg-GP client files"
+LangString DESC_Adm ${LANG_ENGLISH} "Install the Wpkg-GP administrative template file"
+LangString DESC_MSITool ${LANG_ENGLISH} "Install a tool for deploying Wpkg-GP via MSI files"
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-  !insertmacro MUI_DESCRIPTION_TEXT ${Section1} $(DESC_Section1)
-  !insertmacro MUI_DESCRIPTION_TEXT ${Section2} $(DESC_Section2)
-  !insertmacro MUI_DESCRIPTION_TEXT ${Section3} $(DESC_Section2)
+  !insertmacro MUI_DESCRIPTION_TEXT ${Client} $(DESC_Client)
+  !insertmacro MUI_DESCRIPTION_TEXT ${Adm} $(DESC_Adm)
+  !insertmacro MUI_DESCRIPTION_TEXT ${MSITool} $(DESC_MSITool)
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 Function un.onInit
