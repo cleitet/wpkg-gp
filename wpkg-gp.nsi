@@ -38,6 +38,7 @@
 !include LogicLib.nsh
 !include FileFunc.nsh
 !include Library.nsh
+!include Sections.nsh
 
 !include "setup\include\Registry.nsh"
 !include "setup\include\IsUserAdmin.nsi"
@@ -453,12 +454,13 @@ Function WpkgSettingsPage
   !insertmacro INSTALLOPTIONS_WRITE "WpkgSettings.ini" "Field 3" "State" $WpkgCommand
   !insertmacro INSTALLOPTIONS_DISPLAY "WpkgSettings.ini"
 FunctionEnd
+
 Function WpkgSettingsPageCallback
   !insertmacro INSTALLOPTIONS_READ $WpkgCommand "WpkgSettings.ini" "Field 3" "State"
   ${If} $WpkgCommand == ""
   ${AndIf} $EnableViaLGP == 1
     SetCtlColors $WpkgCommand 0x000000 0xFF0000
-    MessageBox MB_OK "Wpkg path cannot be empty" /SD IDOK
+    MessageBox MB_OK "Wpkg path cannot be empty when you are using Local Group Policies" /SD IDOK
     Abort
   ${Else}
     SetCtlColors $WpkgCommand 0x000000 0xFFFFFF
@@ -492,14 +494,27 @@ Function NetworkUserPageCallback
   !insertmacro INSTALLOPTIONS_READ $NetworkPassword "NetworkUserSettings.ini" "Field 5" "State"
 FunctionEnd
 
+Function .OnSelChange
+  #Section 3 requires Section 1
+  ${If} ${SectionIsSelected} ${Section3}
+    ${IfNot} ${SectionIsSelected} ${Section1}
+      SectionGetText ${Section1} $0
+      SectionGetText ${Section3} $1
+      MessageBox MB_OK "Section $1 requires Section $0 to be installed as well."
+      !insertmacro SelectSection ${Section1}
+    ${EndIf}
+  ${EndIf}
+FunctionEnd
 
 # For Modern UI tooltips
 LangString DESC_Section1 ${LANG_ENGLISH} "Install the Wpkg-GP client files"
 LangString DESC_Section2 ${LANG_ENGLISH} "Install the Wpkg-GP administrative template file"
+LangString DESC_Section3 ${LANG_ENGLISH} "Install a tool for deploying Wpkg-GP via MSI files"
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${Section1} $(DESC_Section1)
   !insertmacro MUI_DESCRIPTION_TEXT ${Section2} $(DESC_Section2)
+  !insertmacro MUI_DESCRIPTION_TEXT ${Section3} $(DESC_Section2)
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 Function un.onInit
