@@ -96,7 +96,7 @@ class WpkgExecuter():
         config_env = self.config.EnvironmentVariables.get()
         if config_env != None:
             env.update(config_env)
-        logger.debug(R"Environment variables are: %s" % env)
+        #logger.debug(R"Environment variables are: %s" % env)
         
         # Run WPKG
         self.proc = subprocess.Popen(self.execute_command, stdout=subprocess.PIPE, bufsize=1, universal_newlines=True, env=env)
