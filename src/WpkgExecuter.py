@@ -146,7 +146,7 @@ class WpkgExecuter():
         
         if exitcode == 770560: #WPKG returns this when it requests a reboot
             logger.info(R"WPKG requested a reboot")
-            status = self.reboot_handler.reboot()
+            status = "100 " + self.reboot_handler.reboot()
             self.writer.Write(status)
         else:
             self.reboot_handler.reset_reboot_number()
