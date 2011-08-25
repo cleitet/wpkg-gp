@@ -68,7 +68,6 @@ Var /GLOBAL Features
 Page custom GroupPolicySettingsPage GroupPolicySettingsPageCallback
 Page custom WpkgSettingsPage WpkgSettingsPageCallback
 Page custom NetworkUserPage NetworkUserPageCallback
-!insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 
@@ -146,7 +145,7 @@ Function .onInit
   
   ${If} $0 != 1
     MessageBox MB_OK|MB_ICONEXCLAMATION  "You need to be an administrator to install this product" /SD IDOK
-    SetErrorLevel 2
+    SetErrorLevel 3
     Abort "You need to be an administrator to install this product"
   ${EndIf}
   
@@ -224,7 +223,7 @@ Function .onInit
   # Check for INI file to be able to extract the file
   # It seems that ReadINIStr does not work correctly when reading a file without absolute path
   ClearErrors
-  ReadINIStr $WpkgCommand $INI "WpkgConfig" "WpkgCommand"
+  ReadINIStr $0 $INI "WpkgConfig" "WpkgCommand"
   ${If} ${Errors}
   ${AndIf} $INI != ""
     #Maybe the INI file is in the Current Directory
@@ -271,6 +270,7 @@ Section "Wpkg-GP Client" Client
 
   # Remove old install.log
   Delete "$INSTDIR\install.log"
+  SetOutPath $INSTDIR
   LogSet on
   
   # Initial checks
@@ -312,7 +312,7 @@ Section "Wpkg-GP Client" Client
 
   CreateDirectory $INSTDIR\Microsoft.VC90.CRT
   SetOutPath $INSTDIR\Microsoft.VC90.CRT
-  File redist\VC90\Microsoft.VC90.CRT-${PLATFORM}\*.* 
+  File redist\VC90\Microsoft.VC90.CRT-${PLATFORM}\*.*
   SetOutPath $INSTDIR
 
   # Install Redist components
