@@ -14,14 +14,14 @@ class WpkgConfigError(Exception):
         self.value = value
     def __str__(self):
         return repr(self.value)
-    
+
 class WpkgConfig(object):
     regkey = "Software\Policies\WPKG_GP"
     def __init__(self):
         with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"SOFTWARE\Wpkg-GP", 0, _winreg.KEY_READ) as key:
             self.install_path = _winreg.QueryValueEx(key, "InstallPath")[0]
         self.inifile = os.path.join(self.install_path, "Wpkg-GP.ini")
-        self.configobj = configobj.ConfigObj(self.inifile)
+        self.configobj = configobj.ConfigObj(self.inifile, list_values = True)
         self.WpkgConfig = self.configobj["WpkgConfig"]
         try:
             self.ignore_policy = int(self.WpkgConfig["IgnoreGroupPolicy"])
@@ -124,7 +124,7 @@ class WpkgPasswordSetting(WpkgSetting):
                 return value
             elif self.passwordtype == "crypt":
                 #Remove base_64
-                encrypted_password = base64.b64decode(value)
+                encrypted_password = base64.b64decode(value[:-1]) # Remove hash at end
                 password = win32crypt.CryptUnprotectData(encrypted_password, None, None, None, 0)[1]
                 return password
             else:
@@ -134,9 +134,10 @@ class WpkgPasswordSetting(WpkgSetting):
     def set(self, new_value):
         encrypted_password = win32crypt.CryptProtectData(new_value, "Password", None, None, None, 0)
         base64_password = base64.b64encode(encrypted_password)
-        value = "crypt:%s" % base64_password
+        # Add hash at end to force qouting by configobj module
+        value = 'crypt:%s#' % base64_password
         self.caller.WpkgConfig[self.name] = value
-        self.caller.configobj.write()                               
+        self.caller.configobj.write()
 
 class WpkgEnvironmentVariables(object):
     def __init__(self, caller):
