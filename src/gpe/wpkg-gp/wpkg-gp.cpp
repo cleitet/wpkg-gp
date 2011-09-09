@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <UserEnv.h>
+#include <wchar.h>
 #include "wpkg-gp.h"
 #include "wpkg_common.h"
 
