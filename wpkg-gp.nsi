@@ -53,6 +53,7 @@ Var /GLOBAL WpkgCommand
 Var /GLOBAL EnableViaLGP
 Var /GLOBAL INI
 Var /GLOBAL Features
+Var /GLOBAL FromMSI
 
 # Dynamic file lists
 !system "setup\include\list_files_in_dist.exe /Platform ${PLATFORM}"
@@ -135,6 +136,7 @@ Function Usage
   StrCpy $0 "$0/DisableViaLGP Do not run Wpkg-GP via local group policies$\r$\n"
   StrCpy $0 "$0/Features Client|Adm|MSITool - Install only these features$\r$\n"
   StrCpy $0 "$0     You may select multiple features"
+  # Undocumented: /FromMSI - Used when executing from a custom MSI file
   MessageBox MB_OK $0
   pop $0
 FunctionEnd
@@ -178,9 +180,13 @@ Function .onInit
   
   # Get InstallDir
   ClearErrors
+  Var /GLOBAL IsUpgrade
   ReadRegStr $0 HKLM "SOFTWARE\Wpkg-GP" "InstallPath"
   ${IfNot} ${Errors}
     Strcpy $INSTDIR $0
+    StrCpy $IsUpgrade 1
+  ${Else}
+    StrCpy $IsUpgrade 0
   ${EndIf}
 
   # Check if <= 0.10 (msi install)
@@ -191,16 +197,12 @@ Function .onInit
   !insertmacro CheckForMsi ${ProductKeyVer0.9}
   !insertmacro CheckForMsi ${ProductKeyVer0.10}
 
-
   # Check if already is installed
-  Var /GLOBAL IsUpgrade
   Var /GLOBAL PreviousVersion
   ClearErrors
   ReadRegStr $PreviousVersion HKLM "${PRODUCT_UNINST_KEY}" "DisplayVersion"
-  ${If} $PreviousVersion == ""
-    StrCpy $IsUpgrade 0
-  ${Else}
-    StrCpy $IsUpgrade 1
+  ${If} ${Errors}
+    ReadRegStr $PreviousVersion HKLM "SOFTWARE\Wpkg-GP" "DisplayVersion"
   ${EndIf}
 
   # Check if parameters provided are OK
@@ -210,16 +212,22 @@ Function .onInit
   ${GetOptions} $R0 "/INI"             $INI
   ${GetOptions} $R0 "/Features"        $Features
 
+
   Call GetFeatures
   
   # Check if EnableViaLGP flag is set
   ClearErrors
-  ${GetOptions} $R0 "/DisableViaLGP"    $R1
+  ${GetOptions} $R0 "/DisableViaLGP" $R1
   ${IfNot} ${Errors}
     StrCpy $EnableViaLGP 0
   ${EndIf}
   
-  
+  ClearErrors
+  ${GetOptions} $R0 "/FromMSI" $R1
+  ${IfNot} ${Errors}
+    StrCpy $FromMSI 1
+  ${EndIf}
+
   # Check for INI file to be able to extract the file
   # It seems that ReadINIStr does not work correctly when reading a file without absolute path
   ClearErrors
@@ -284,7 +292,7 @@ Section "Wpkg-GP Client" Client
   ${Else}
     DetailPrint "This is a new install"
   ${EndIf}
-
+  
 # Does not work on service upgrading itself
 #  ${If} $IsUpgrade == 1
 #    DetailPrint "Attempting to stop WpkgServer"
@@ -332,7 +340,7 @@ Section "Wpkg-GP Client" Client
 
     ${If} ${Silent}
       LogText "Executing silent install"
-      ExecWait '"$OUTDIR\vcredist_${PLATFORM}.exe" /q'
+      ExecWait '"$OUTDIR\vcredist_${PLATFORM}.exe" /passive'
     ${Else}
       LogText "Executing verbose install"
       ExecWait '"$OUTDIR\vcredist_${PLATFORM}.exe" /passive'
@@ -388,6 +396,7 @@ Section "Wpkg-GP Client" Client
   # Register components
   DetailPrint "Registering components"
   WriteRegStr HKLM "Software\Wpkg-GP" "InstallPath" "$INSTDIR"
+  WriteRegStr HKLM "Software\Wpkg-GP" "DisplayVersion" "${PRODUCT_VERSION}"
   
   #WPKG-GP
   WriteRegStr HKLM "${GPE_REG_KEY}" "" "Wpkg-GP"
@@ -420,10 +429,10 @@ Section "Wpkg-GP Client" Client
   WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" "verbosestatus" 1
   WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" "DisableStatusMessages" 0
   WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" "SyncForegroundPolicy" 1
-  
+
   DetailPrint "Registering uninstallation options in add/remove programs"
   WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "DisplayName" "${PRODUCT_NAME}"
-  WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "UninstallString" "$INSTDIR\uninstall.exe"
   WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "InstallLocation" "$INSTDIR"
   #WriteRegStr HKLM PRODUCT_UNINST_KEY "DisplayIcon"
   WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "Publisher" "${PRODUCT_PUBLISHER}"
@@ -431,8 +440,9 @@ Section "Wpkg-GP Client" Client
   WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "NoModify" 1
   WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "NoRepair" 1
-  
+
   WriteUninstaller $INSTDIR\uninstall.exe
+  WriteRegStr HKLM "Software\Wpkg-GP" "UninstallString" "$INSTDIR\uninstall.exe" # Used by MSI
   
   ${If} ${RebootFlag}
   ${AndIf} ${Silent}
@@ -567,15 +577,21 @@ Function un.onInit
   ${If} $CURRENTPLATFORM == "x64"
     SetRegView 64
   ${EndIf}
+
+  # Check if FromMSI is set
+  ${GetParameters} $R0
+  ClearErrors
+  ${GetOptions} $R0 "/FromMSI" $R1
+  ${IfNot} ${Errors}
+    StrCpy $FromMSI 1
+  ${EndIf}
 FunctionEnd
 
 section "uninstall"
-
   #Stop service
   nsExec::ExecToLog "net stop WpkgServer"
 
   !insertmacro SERVICE "delete" "WpkgServer" ""
-
   Call un.F_Delete
   Delete $INSTDIR\Wpkg-GP-test.exe
   Delete $INSTDIR\WpkgPipeClient.exe

@@ -37,7 +37,7 @@ GOTO :eof
   SETLOCAL
   SET ARCH=%1
   %WIX%\candle.exe -ext WixUtilExtension -arch %ARCH% -out %ARCH%\ wpkg-gp.wxs
-  %WIX%\light.exe -spdb -ext WixUiExtension -ext WixUtilExtension -out wpkg-gp_%ARCH%.msitemplate %ARCH%\*.wixobj
+  %WIX%\light.exe -au -spdb -ext WixUiExtension -ext WixUtilExtension -out wpkg-gp_%ARCH%.msitemplate %ARCH%\*.wixobj
   ENDLOCAL
   GOTO :eof
   

@@ -37,18 +37,22 @@ class ExeFileObj(IniFileObj):
         
 
 class WpkgGpMsi(object):
-    def __init__(self, platform, exefile, inifile, msifile):
+    def __init__(self, platform, exefile, inifile, msifile, template=None):
         self.platform = platform
         self.exefile = ExeFileObj(exefile)
         self.inifile = IniFileObj(inifile)
         self.msifile = FileObj(msifile)
-        config = WpkgConfig.WpkgConfig()
-        self.template = os.path.join(config.install_path, "MSI", "wpkg-gp_%s.msitemplate" % self.platform)
-        #self.template = r"Z:\wpkg-devel\wpkg-gp\trunk\src\msi\wpkg-gp_x86.msitemplate"
+        if template == None:
+            config = WpkgConfig.WpkgConfig()
+            self.template = os.path.join(config.install_path, "MSI", "wpkg-gp_%s.msitemplate" % self.platform)
+        else:
+            self.template = template
         self.tempdir = tempfile.mkdtemp()
         self.productcode = msilib.gen_uuid()
         self.productversion = self.exefile.get_fileversion_as_string()
         self.manufacturer = "The Wpkg-GP team"
+        self.package_GUID = "{" + msilib.UuidCreate().upper() + "}"
+        self.product_GUID = "{" + msilib.UuidCreate().upper() + "}"
         
     def generate_MSI(self):
         shutil.copy(self.template, self.msifile.path)
@@ -62,9 +66,13 @@ class WpkgGpMsi(object):
         #print self.msifile.path
         #msilib.add_tables(database, msilib.schema)
         database = msilib.OpenDatabase(self.msifile.path, msilib.MSIDBOPEN_DIRECT)
-
         msilib.add_stream(database, "Wpkg_GP.cab", cabfile)
 
+        # Update Product Code
+        summaryinformation = database.GetSummaryInformation(1)
+        summaryinformation.SetProperty(msilib.PID_REVNUMBER, self.package_GUID)
+        summaryinformation.Persist()
+        
         # Add information to Media
         # DiskId | LastSequence | DiskPrompt | Cabinet | VolumeLabel | Source
         table = "Media"
@@ -89,7 +97,14 @@ class WpkgGpMsi(object):
         # Add information to CustomAction
         # Action | Type | Source | Target
         # For Type, see: http://msdn.microsoft.com/en-us/library/aa372048%28v=VS.85%29.aspx
-        
+
+        # Add information to Property
+        # Property | Value
+        # Update version
+        view = database.OpenView("UPDATE Property SET Value='%s' WHERE Property='ProductVersion'" % self.exefile.get_fileversion_as_string())
+        view.Execute(None)
+        view = database.OpenView("UPDATE Property Set Value='%s' WHERE Property='ProductCode'" % self.product_GUID)
+        view.Execute(None)
 
         database.Commit()
 
@@ -102,6 +117,10 @@ def main():
         exefile = sys.argv[2]
         inifile = sys.argv[3]
         msifile = sys.argv[4]
+        try:
+            template = sys.argv[5]
+        except IndexError:
+            template = None
         if platform != "x64" and platform != "x86":
             usage("Error: Platform must be x64 or x86, you entered %s" % platform)
         
@@ -111,7 +130,9 @@ def main():
     print "Platform.: %s" % platform
     print "Installer: %s" % exefile
     print "Ini file.: %s" % inifile
-    MSI = WpkgGpMsi(platform, exefile, inifile, msifile)
+    MSI = WpkgGpMsi(platform, exefile, inifile, msifile, template)
+    print "Package GUID: %s" % MSI.package_GUID
+    print "Product GUID: %s" % MSI.product_GUID
     MSI.generate_MSI()
         
     

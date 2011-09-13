@@ -1,12 +1,16 @@
 <?xml version='1.0' encoding='utf-8'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
-<!-- MSI file for wrapping an installer -->
+<!-- MSI file for generating a template -->
+<!-- Product code set by MakeMSI -->
 <Product
-  Name='Wpkg-GP' Id='*'
+  Name='Wpkg-GP ($(sys.BUILDARCH)) MSI for GPO deployment' Id='*'
   UpgradeCode='1616d84d-6281-4655-bbd9-c5b220c43e16'
   Language='1033' Codepage='1252' Version='0.0.0.0'
   Manufacturer='The Wpkg-GP team'>
+ 
   
+  <!-- Package code set by MakeMSI -->
+  <!-- All new packages are major upgrades -->
   <Package 
     Id='*' Keywords='Installer' Description="WPKG-GP MSI Installer for $(sys.BUILDARCH)"
     Comments='http://code.google.com/p/wpkg-gp/'
@@ -14,6 +18,13 @@
     InstallerVersion='300' Languages='1033' Compressed='yes'
     SummaryCodepage='1252' Platform='$(sys.BUILDARCH)'
   />
+   <Upgrade Id="1616d84d-6281-4655-bbd9-c5b220c43e16">
+    <UpgradeVersion
+      Minimum="0.0.0.0" Maximum="99.0.0.0"
+	  Property="PREVIOUSVERSIONINSTALLED"
+	  IncludeMinimum="yes" IncludeMaximum="no"
+	/>
+  </Upgrade>
   <Condition Message="You need to be an administrator to install this product.">
     Privileged
   </Condition>
@@ -22,8 +33,8 @@
   </Condition>
   
   <Directory Id='TARGETDIR' Name='SourceDir'>
-    <Directory Id='TempFolder' Name='Tmp'>
-	  <Directory Id="InstallDir" Name="Wpkg-GP">
+    <Directory Id="TempFolder" Name="Temp">
+  	  <Directory Id="InstallDir" Name="Wpkg-GP">
 	    <Component Id="Installer" Guid="c7ea9969-e057-4632-b822-91823fdeee82">
 		  <CreateFolder />
 		</Component>
@@ -35,31 +46,65 @@
     <ComponentRef Id="Installer" />
   </Feature>
   
-  <?if $(sys.BUILDARCH) = "x64" ?>
-    <CustomAction Id="ExecuteInstaller_CMD" Property="QtExec64CmdLine" Value='"[#ExeFile]" /S /INI [#IniFile]' Execute="immediate" />
-    <CustomAction Id="ExecuteInstaller" BinaryKey="WixCA" DllEntry="CAQuietExec64" Execute="immediate" Return="ignore" />
-  <?else ?>
-    <CustomAction Id="ExecuteInstaller_CMD" Property="QtExecCmdLine" Value='"[#ExeFile]" /S /INI [#IniFile]' Execute="immediate" />
-    <CustomAction Id="ExecuteInstaller" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="immediate" Return="ignore" />
-  <?endif ?>
+
+  <Property Id="UNINSTALLERCMD">
+    <?if $(sys.BUILDARCH) = "x64" ?>
+    <RegistrySearch Id="UninstallString"
+	                Root="HKLM"
+					Key="SOFTWARE\Wpkg-GP"
+					Name="UninstallString"
+					Type="raw"
+					Win64="yes" />
+	<?else ?>
+	<RegistrySearch Id="UninstallString"
+	                Root="HKLM"
+					Key="SOFTWARE\Wpkg-GP"
+					Name="UninstallString"
+					Type="raw"
+					Win64="no" />
+    <?endif ?>					
+  </Property>
+  
+  <Property Id="ARPSYSTEMCOMPONENT" Value="1" />
+  <Property Id="ARPCOMMENTS" Value="Special MSI for deployment via Group Policies" />
+  <Property Id="PREVIOUSVERSIONINSTALLED" Secure="yes" />
+  
+   <CustomAction Id="ExecuteInstaller"
+				ExeCommand="/S /FromMSI /INI [#IniFile]"
+				Execute="deferred"
+				FileKey="ExeFile" 
+				Return="asyncNoWait" />
+
+   <CustomAction Id="ExecuteUninstaller"
+                ExeCommand="/S /FromMSI"
+				Execute="deferred"
+				Property="UNINSTALLERCMD"
+				Return="ignore" />
   
   <!-- Adding and Removing an Application and Leaving No Trace in the Registry -->
+  <!-- NOTE: This ruins GPO deployment (generates empty aas files) so kind of defeats the purpose :) -->
   <!-- http://msdn.microsoft.com/en-us/library/aa367519.aspx -->
-  <InstallExecuteSequence>
-    <RegisterProduct Suppress="yes" />
+ <InstallExecuteSequence>
+    <RemoveExistingProducts Before="InstallInitialize" /> 
+    <!-- <RegisterProduct Suppress="yes" /> 
 	<RegisterUser Suppress="yes" />
 	<PublishProduct Suppress="yes" />
-	<PublishFeatures Suppress="yes" />
-	<Custom Action="ExecuteInstaller_CMD" After="InstallFiles" />
-	<Custom Action="ExecuteInstaller" After="ExecuteInstaller_CMD" />
+	<PublishFeatures Suppress="yes" /> -->
+	<Custom Action="ExecuteInstaller" After="InstallFiles">
+	  <!-- <![CDATA[ (&Complete = 3) OR ((!Complete = 3) AND (&Complet <> 3)) ]]> -->
+	</Custom>
+	<Custom Action="ExecuteUninstaller" After="InstallFiles">
+	  <![CDATA[ (&Complete = 2) AND (!Complete = 3) AND NOT UPGRADINGPRODUCTCODE]]>
+	</Custom> 
   </InstallExecuteSequence>
   <AdvertiseExecuteSequence>
-	<PublishProduct Suppress="yes" />
-	<PublishFeatures Suppress="yes" />
+	<!-- <PublishProduct Suppress="yes" />
+	<PublishFeatures Suppress="yes" /> -->
   </AdvertiseExecuteSequence>
   
   <UI>
     <ProgressText Action="ExecuteInstaller">Executing the Wpkg-GP installer</ProgressText>
+	<ProgressText Action="ExecuteUninstaller">Executing the Wpkg-GP uninstaller</ProgressText>
   </UI>
 </Product>
 </Wix>
