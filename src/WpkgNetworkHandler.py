@@ -1,7 +1,7 @@
 import logging
 import WpkgConfig
 import re
-import win32wnet, win32netcon
+import win32wnet, win32netcon, winerror
 import time
 
 class NullHandler(logging.Handler):
@@ -35,6 +35,10 @@ class WpkgNetworkHandler(object):
         if self.connected == True:
             logger.debug("Is already connected to the network")
             return
+        if self.network_username == None:
+            logger.info("No username provided, credentials used will be that of the Wpkg-GP service.")
+            self.connected = False
+            return
         
         if self.network_share == None:
             logger.info("Wpkg is not on the network, will not connect to a share")
@@ -62,11 +66,12 @@ class WpkgNetworkHandler(object):
                     else:
                         logger.info("Could not log on to the network with Wpkg-GP service account")
                         break
-                elif n == 1219: # Multiple connections from same user
-                    logger.info("Tried to connect to share '%s', but a connection already exists." % self.network_share)
+                elif n == winerror.ERROR_SESSION_CREDENTIAL_CONFLICT: # 1219: Multiple connections from same user
+                    logger.info("Tried to connect to share '%s', but a connection already exists. Will disconnect, and retry." % self.network_share)
                     self.connected = True
-                    break
-                elif n == 53 or n == 1231: # Network path not found | Network location cannot be reached
+                    self.disconnect_from_network_share()
+                    pass
+                elif n == winerror.ERROR_BAD_NETPATH or n == winerror.ERROR_NETWORK_UNREACHABLE: # 53_ Network path not found | 1231Network location cannot be reached
                     # This can indicate that the network path was wrong, or that the network is not available yet
                     logger.info("An issue occured when connecting to '%s', the error code is %i and the error string is '%s'" % (self.network_share, n, e))
                     time.sleep(5) # Sleep 5 seconds
@@ -82,7 +87,7 @@ class WpkgNetworkHandler(object):
             logger.info("Successfully disconnected from the network")
             self.connected = False
         except win32wnet.error, (n, f, e):
-            if n == 2250: #This network connection does not exist
+            if n == winerror.ERROR_NOT_CONNECTED: #2250: This network connection does not exist
                 logger.info("Was already disconnected from network") 
             else:
                 raise
