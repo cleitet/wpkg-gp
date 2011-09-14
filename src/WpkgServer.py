@@ -183,7 +183,6 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
                 if self.WpkgExecuter.is_running:
                     msg = "200 " + self.WpkgExecuter.getStatus()
                     self.logger.info("Wpkg Executer is not ready. Returning '%s' to client." % msg)
-                    servicemanager.LogErrorMsg(msg)
                     WriteFile(pipeHandle, msg.encode('ascii'))
                 else:
                     if d == b"Execute" or d == b"ExecuteFromGPE":
@@ -240,11 +239,15 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
     def SvcDoRun(self):
         # Write an event log record - in debug mode we will also
         # see this message printed.
-        servicemanager.LogMsg(
+        try:
+            servicemanager.LogMsg(
                 servicemanager.EVENTLOG_INFORMATION_TYPE,
                 servicemanager.PYS_SERVICE_STARTED,
                 (self._svc_name_, '')
                 )
+        except error:
+            pass #Log is most likely full, we do not want to die on this
+
 
         num_connections = 0
         #Waiting for an event
@@ -282,11 +285,15 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
             print("Waiting for %d threads to finish..." % (len(self.thread_handles)))
             WaitForMultipleObjects(self.thread_handles, 1, 3000)
         # Write another event log record.
-        servicemanager.LogMsg(
+        try:
+            servicemanager.LogMsg(
                 servicemanager.EVENTLOG_INFORMATION_TYPE,
                 servicemanager.PYS_SERVICE_STOPPED,
                 (self._svc_name_, " after processing %d connections" % (num_connections,))
                 )
+
+        except error:
+            pass #Log is most likely full, we do not want to die on this
 
 
 if __name__=='__main__':
