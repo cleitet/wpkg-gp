@@ -124,7 +124,10 @@ class WpkgPasswordSetting(WpkgSetting):
                 return value
             elif self.passwordtype == "crypt":
                 #Remove base_64
-                encrypted_password = base64.b64decode(value[:-1]) # Remove hash at end
+                if value[-1] == "#": # If an extra # has been added to the hash to force quoting
+                    encrypted_password = base64.b64decode(value[:-1]) # Remove hash at end
+                else:
+                    encrypted_password = base64.b64decode(value)
                 password = win32crypt.CryptUnprotectData(encrypted_password, None, None, None, 0)[1]
                 return password
             else:
