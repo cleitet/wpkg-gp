@@ -340,7 +340,7 @@ Section "Wpkg-GP Client" Client
 
     ${If} ${Silent}
       LogText "Executing silent install"
-      ExecWait '"$OUTDIR\vcredist_${PLATFORM}.exe" /passive'
+      ExecWait '"$OUTDIR\vcredist_${PLATFORM}.exe" /q'
     ${Else}
       LogText "Executing verbose install"
       ExecWait '"$OUTDIR\vcredist_${PLATFORM}.exe" /passive'
