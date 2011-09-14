@@ -34,8 +34,10 @@ class NullHandler(logging.Handler):
 
 class WpkgLocalGPConfigurator:
     def __init__(self):
-        system32dir = win32api.GetSystemDirectory()
-        inifile = os.path.join(system32dir, "GroupPolicy", "gpt.ini")
+        grouppolicydir = os.path.join(win32api.GetSystemDirectory(), "GroupPolicy")
+        if not os.path.exists(grouppolicydir):
+            os.mkdir(grouppolicydir)
+        inifile = os.path.join(grouppolicydir, "gpt.ini")
         self._inifile = inifile
         self.config = ConfigParser.SafeConfigParser()
         logger.debug("LGP: Opening %s" % inifile)
