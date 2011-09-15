@@ -61,7 +61,7 @@ class WpkgSetting(object):
         self.type = type
         self.required = required
         
-    def get_from_ini(self):
+    def get_from_ini(self, log=True):
         try:
             ini_config =  self.caller.WpkgConfig[self.name]
         except KeyError:
@@ -69,17 +69,19 @@ class WpkgSetting(object):
         if ini_config == "":
             return None
         else:
-            logger.debug("Config: Reading %s: '%s' from ini file" % (self.name, ini_config))
+            if log:
+                logger.debug("Config: Reading %s: '%s' from ini file" % (self.name, ini_config))
             if self.type == "int":
                 return int(ini_config)
             else:
                 return ini_config
     
-    def get_from_policy(self):
+    def get_from_policy(self, log=True):
         try:
             with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, self.caller.regkey) as key:
                 policy_config = _winreg.QueryValueEx(key, self.name)[0]
-                logger.debug("Config:Reading %s: '%s' from group policy settings" % (self.name, policy_config))
+                if log:
+                    logger.debug("Config:Reading %s: '%s' from group policy settings" % (self.name, policy_config))
                 if self.type == "int":
                     return int(policy_config)
                 else:
@@ -109,11 +111,11 @@ class WpkgSetting(object):
 class WpkgPasswordSetting(WpkgSetting):
     def get(self):
         if self.caller.ignore_policy != "1":
-            policy_value = self.get_from_policy()
+            policy_value = self.get_from_policy(log=False)
             if policy_value != None:
                 logger.debug("Reading %s from group policy settings" % self.name)
                 return policy_value
-        ini_value = self.get_from_ini()
+        ini_value = self.get_from_ini(log=False)
         if ini_value != None:
             logger.debug("Reading %s from ini file" % self.name)
             self.passwordtype = ini_value.split(":")[0]
