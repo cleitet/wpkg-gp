@@ -126,7 +126,7 @@ class WpkgExecuter():
                     currsec = time.time()
                     if(lastsec != None and currsec - lastsec >= 1): #Show every 1 sec
                         self.writer.Write("101 %s%s" % (parsedline, self.GetActivityIndicator()))
-                    lastsec = currsec
+                        lastsec = currsec
             else:
                 lines.append(line)
                 if quit:
@@ -135,7 +135,7 @@ class WpkgExecuter():
                 if self.parser.updated:
                     parsedline = self.parser.get_formatted_line()
                     self.writer.Write("100 %s      " % parsedline)
-                    lastsec = None # Reset timer
+                    lastsec = time.time() # Reset timer
             if self.proc.poll() != None: #Wpkg is finished
                 self.is_running = False
                 quit = True # Run a last loop to fetch the last line
