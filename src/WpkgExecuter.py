@@ -8,7 +8,7 @@ import WpkgNetworkHandler
 import WpkgOutputParser
 import WpkgRebootHandler
 import logging
-import sys, os, csv, subprocess
+import sys, os, csv, subprocess, time
 try:
     from Queue import Queue, Empty
 except ImportError:
@@ -72,6 +72,9 @@ class WpkgExecuter():
             if not "/nonotify" in commandlist:
                 logger.debug("WpkgCommand is a js but is missing /nonotify, adding")
                 commandlist.append("/nonotify")
+            if not "/quiet" in commandlist:
+                logger.debug("WpkgCommand is a js but is missing /quiet, adding")
+                commandlist.append("/quiet")
         self.execute_command = " ".join(commandlist)
                 
     def Execute(self, handle=None):
@@ -112,14 +115,18 @@ class WpkgExecuter():
 
         #Reading lines
         quit = False
+        lastsec = None
         while 1:
             try:
-                line = q.get(timeout=1)
+                line = q.get(timeout=0.05)
             except Empty:
                 if quit:
                     break # Now we have appended the last line
                 if show_activity:
-                    self.writer.Write("101 %s%s" % (parsedline, self.GetActivityIndicator()))
+                    currsec = time.time()
+                    if(lastsec != None and currsec - lastsec >= 1): #Show every 1 sec
+                        self.writer.Write("101 %s%s" % (parsedline, self.GetActivityIndicator()))
+                    lastsec = currsec
             else:
                 lines.append(line)
                 if quit:
@@ -127,7 +134,8 @@ class WpkgExecuter():
                 self.parser.parse_line(line)
                 if self.parser.updated:
                     parsedline = self.parser.get_formatted_line()
-                    self.writer.Write("100 %s" % (parsedline))
+                    self.writer.Write("100 %s      " % parsedline)
+                    lastsec = None # Reset timer
             if self.proc.poll() != None: #Wpkg is finished
                 self.is_running = False
                 quit = True # Run a last loop to fetch the last line
@@ -165,9 +173,10 @@ class WpkgExecuter():
             pass
     
     def GetActivityIndicator(self):
+        # Show for every 10 iteration
         mod = self.activityvalue % 5
-        self.activityvalue = mod + 1
-        if mod== 0:
+        self.activityvalue = self.activityvalue + 1
+        if mod == 0:
             return "...    "
         if mod == 1:
             return " ...   "
