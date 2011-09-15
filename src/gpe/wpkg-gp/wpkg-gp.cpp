@@ -39,18 +39,21 @@ extern "C" __declspec( dllexport ) DWORD CALLBACK ProcessGroupPolicy(
 
 	BOOL DEBUG = false;
 	
-	LONG lRet = RegOpenKeyExA(HKEY_LOCAL_MACHINE, "SOFTWARE\\Policies\\WPKG_GP", 0, KEY_QUERY_VALUE, &hKey);
-	lRet = RegQueryValueExA(hKey, "WpkgVerbosity", 0, &dwDataType, lpValue, &dwSize); // dwSize will contain the data size
-	// Allocate the buffer
-	lpValue = (LPBYTE) malloc(dwSize + 1);
-	lRet = RegQueryValueExA(hKey, "WpkgVerbosity", 0, &dwDataType, lpValue, &dwSize);
-	RegCloseKey(hKey);
-	// Adding null termination
-	lpValue[dwSize] = '\0';
-	if (atoi((LPSTR) lpValue) >= 3){
-		DEBUG=true;
+	LONG lRet = RegOpenKeyExA(HKEY_LOCAL_MACHINE, "SOFTWARE\\Wpkg-GP", 0, KEY_QUERY_VALUE, &hKey);
+	lRet = RegQueryValueExA(hKey, "GPEVerbosity", 0, &dwDataType, lpValue, &dwSize); // dwSize will contain the data size
+	if (lRet == ERROR_SUCCESS)
+	{
+		// Allocate the buffer
+		lpValue = (LPBYTE) malloc(dwSize + 1);
+		lRet = RegQueryValueExA(hKey, "GPEVerbosity", 0, &dwDataType, lpValue, &dwSize);
+		RegCloseKey(hKey);
+		// Adding null termination
+		lpValue[dwSize] = '\0';
+		if (atoi((LPSTR) lpValue) == 1){
+			DEBUG=true;
+		}
+		free(lpValue);
 	}
-	free(lpValue);
 
 	//Checking flags:
 	if (DEBUG){

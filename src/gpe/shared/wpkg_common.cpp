@@ -24,7 +24,7 @@
 
 
 //Globals
-bool DEBUG = TRUE;
+bool DEBUG = FALSE;
 int EXECUTE_FROM_GPE = FALSE;
 int EXECUTE_FROM_EXE = FALSE;
 PFNSTATUSMESSAGECALLBACK gStatusCallback = NULL;
@@ -37,7 +37,7 @@ void debug(const wchar_t* format, ...)
 	struct tm timeinfo;
 	va_list valist;
 
-	if (!DEBUG)
+	if (!DEBUG && EXECUTE_FROM_GPE)
 		return;
 
 	time(&rawtime);
@@ -49,7 +49,7 @@ void debug(const wchar_t* format, ...)
 		fwprintf_s(stdout, L"%ls", tmpbuf);
 		vfwprintf_s(stdout, format, valist);
 	}
-	if (debugfh != NULL) {
+	if (debugfh != NULL && DEBUG) {
 		fwprintf_s(debugfh, L"%ls", tmpbuf);
 		vfwprintf_s(debugfh, format, valist);
 		fflush(debugfh);
@@ -122,7 +122,27 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag)
 
 	if (debug_flag) {
 		DEBUG = TRUE;
-		_wfopen_s(&debugfh, L"c:\\wpkg-gp-debug.log", L"a");
+		// Get install path from registry
+		HKEY hKey = NULL;
+		DWORD dwDataType = REG_SZ;
+		DWORD dwSize = 0;
+		LPBYTE lpValue   = NULL;
+		LONG lRet = RegOpenKeyExA(HKEY_LOCAL_MACHINE, "SOFTWARE\\Wpkg-GP", 0, KEY_QUERY_VALUE, &hKey);
+		lRet = RegQueryValueExA(hKey, "InstallPath", 0, &dwDataType, lpValue, &dwSize); // dwSize will contain the data size
+		if (lRet == ERROR_SUCCESS)
+		{
+			// Allocate the buffer
+			lpValue = (LPBYTE) malloc(dwSize + 1);
+			lRet = RegQueryValueExA(hKey, "InstallPath", 0, &dwDataType, lpValue, &dwSize);
+			RegCloseKey(hKey);
+			// Adding null termination
+			lpValue[dwSize] = '\0';
+			wchar_t debuglogpath[BUFSIZE];
+			swprintf_s(debuglogpath, BUFSIZE, L"%hs\\logs\\wpkg-gp-debug.log", lpValue);
+			_wfopen_s(&debugfh, debuglogpath, L"a");
+			free(lpValue);
+		}
+		
 	}
 
 	if (called_by == GPE)
@@ -290,7 +310,6 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag)
 	while (1) { 
 		char chBuf[BUFSIZE];
 		wchar_t wcBuf[BUFSIZE];
-		BOOL bLog = TRUE;
 		DWORD cbRead;
 
 		// Read from the pipe. 
@@ -320,16 +339,7 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag)
 			continue;
 		}
 
-		debug(L"Successfully read from pipe, stripping status code\n");
-
-		// If status code = 101, do not use EventVwr
-		if (memcmp(chBuf, "101", 3) == 0) {
-			debug(L"Retrieved Status Code 101, will not print anything to event log\n");
-			bLog = false;
-		} else {
-			debug(L"Retrieved Status Code %3.3S\n", chBuf);
-			bLog = true;
-		}
+		debug(L"Successfully read from pipe, retrieved Status Code %3.3S\n", chBuf);
 
 		debug(L"Converting string to wchar_t\n");
 		cbWritten = MultiByteToWideChar(CP_UTF8, 0, &chBuf[4], cbRead-4, wcBuf, BUFSIZE-1);
@@ -342,11 +352,7 @@ DWORD executeWpkgViaPipe(int called_by, bool debug_flag)
 
 		debug(L"Calling UpdateStatus\n");
 		//pStatusCallback(FALSE, wcBuf);
-		if (bLog == TRUE) {
-			UpdateStatus(LOG_INFO, wcBuf, FALSE);
-		} else {
-			UpdateStatus(NO_LOG, wcBuf, FALSE);
-		}
+		UpdateStatus(NO_LOG, wcBuf, FALSE);
 	}
 
 	CloseHandle(hPipe);
