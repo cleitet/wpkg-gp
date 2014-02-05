@@ -36,6 +36,7 @@ class WpkgNetworkHandler(object):
         host = self.config.get("TestConnectionHost")
         port = self.config.get("TestConnectionPort")
         tries = self.config.get("TestConnectionTries")
+        sleep = self.config.get("TestConnectionSleepBeforeRetry")
         timeout = 2
 
         for i in range(tries):
@@ -48,6 +49,8 @@ class WpkgNetworkHandler(object):
                 return True
             except socket.error as msg:
                 logger.debug("Testing connection failed: %s" % (msg))
+            time.sleep(sleep)
+
         return False
 
     def connect_to_network_share(self):

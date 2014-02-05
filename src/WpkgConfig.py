@@ -46,6 +46,7 @@ class WpkgConfig(object):
             WpkgSetting(self, "TestConnectionHost", None, "string"),
             WpkgSetting(self, "TestConnectionPort", 445, "string"),
             WpkgSetting(self, "TestConnectionTries", 5, "int"),
+            WpkgSetting(self, "TestConnectionSleepBeforeRetry", 2, "int"),
             WpkgSetting(self, "ConnectionTries", 7, "int"),
             WpkgSetting(self, "ConnectionSleepBeforeRetry", 5, "int")
             ]
