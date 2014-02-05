@@ -43,9 +43,9 @@ class WpkgConfig(object):
             WpkgSetting(self, "WpkgExecuteByLocalUsers", 1, "int"),
             WpkgSetting(self, "WpkgActivityIndicator", 1, "int"),
             WpkgSetting(self, "DisableAtBootUp", 0, "int"),
-            WpkgSetting(self, "TestConnectHost", None, "string"),
-            WpkgSetting(self, "TestConnectPort", 445, "string"),
-            WpkgSetting(self, "TestConnectTries", 5, "int"),
+            WpkgSetting(self, "TestConnectionHost", None, "string"),
+            WpkgSetting(self, "TestConnectionPort", 445, "string"),
+            WpkgSetting(self, "TestConnectionTries", 5, "int"),
             WpkgSetting(self, "ConnectionTries", 7, "int"),
             WpkgSetting(self, "ConnectionSleepBeforeRetry", 5, "int")
             ]

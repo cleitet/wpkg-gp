@@ -33,9 +33,9 @@ class WpkgNetworkHandler(object):
             self.network_share = None
             
     def test_host_connect(self):
-        host = self.config.get("TestConnectHost")
-        port = self.config.get("TestConnectPort")
-        tries = self.config.get("TestConnectTries")
+        host = self.config.get("TestConnectionHost")
+        port = self.config.get("TestConnectionPort")
+        tries = self.config.get("TestConnectionTries")
         timeout = 2
 
         for i in range(tries):
@@ -66,7 +66,7 @@ class WpkgNetworkHandler(object):
         # cleaning up any stale connections
         self.disconnect_from_network_share()
 
-        if self.config.get("TestConnectHost") != None and not self.test_host_connect():
+        if self.config.get("TestConnectionHost") != None and not self.test_host_connect():
             logger.info("Test-Host did not respond. Not connecting to the network share")
             return
 
