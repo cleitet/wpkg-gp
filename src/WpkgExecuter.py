@@ -92,7 +92,9 @@ class WpkgExecuter():
         logger.info(R"Executing WPKG with the command %s" % self.execute_command)
         
         #Open the network share as another user, if necessary
-        self.network_handler.connect_to_network_share()
+        if not self.network_handler.connect_to_network_share():
+            logger.error("Connecting to network share failed. Exiting.")
+            return
 
         # Add environment parameters
         env = os.environ.copy()

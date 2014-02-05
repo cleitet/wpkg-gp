@@ -54,24 +54,26 @@ class WpkgNetworkHandler(object):
         return False
 
     def connect_to_network_share(self):
+        # returns True if connection to network share has been successful or
+        # connecting to network share is not necessary
         if self.connected == True:
             logger.debug("Is already connected to the network")
-            return
+            return True
         if self.network_username == None:
             logger.info("No username provided, credentials used will be that of the Wpkg-GP service.")
             self.connected = False
-            return
+            return True
         
         if self.network_share == None:
             logger.info("Wpkg is not on the network, will not connect to a share")
             self.connected = False
-            return
+            return True
         # cleaning up any stale connections
         self.disconnect_from_network_share()
 
         if self.config.get("TestConnectionHost") != None and not self.test_host_connect():
             logger.info("Test-Host did not respond. Not connecting to the network share")
-            return
+            return False # Test of connection failed; therefore do not contiue connecting
 
         sleep = self.config.get("ConnectionSleepBeforeRetry")
         tries = self.config.get("ConnectionTries")
@@ -104,6 +106,7 @@ class WpkgNetworkHandler(object):
                     time.sleep(sleep)
                 else:
                     raise
+        return self.connected  # connection successful if connected at this point
 
     def disconnect_from_network_share(self):
         if self.connected == False:
