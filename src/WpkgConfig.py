@@ -21,7 +21,8 @@ class WpkgConfig(object):
         with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, R"SOFTWARE\Wpkg-GP", 0, _winreg.KEY_READ) as key:
             self.install_path = _winreg.QueryValueEx(key, "InstallPath")[0]
         self.inifile = os.path.join(self.install_path, "Wpkg-GP.ini")
-        self.configobj = configobj.ConfigObj(self.inifile, list_values = True)
+        # list_values needs to be False to preserve quotes from single values
+        self.configobj = configobj.ConfigObj(self.inifile, list_values = False)
         self.WpkgConfig = self.configobj["WpkgConfig"]
         try:
             self.ignore_policy = int(self.WpkgConfig["IgnoreGroupPolicy"])

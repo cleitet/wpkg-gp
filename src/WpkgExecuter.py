@@ -8,7 +8,7 @@ import WpkgNetworkHandler
 import WpkgOutputParser
 import WpkgRebootHandler
 import logging
-import sys, os, csv, subprocess, time
+import sys, os, re, subprocess, time
 try:
     from Queue import Queue, Empty
 except ImportError:
@@ -45,16 +45,17 @@ class WpkgExecuter():
         commandstring = self.wpkg_command
         commandstring = os.path.expandvars(commandstring) #Expanding variables
 
-        #check if starts with cscript and contains /noreboot /synchronize
+        # check if starts with cscript and contains /noreboot /synchronize
         # and/or /sendStatus is in command. If not, add it.
         
-        # Using csv module "hack" to split the commandstring since shlex does not work with unicode strings
-        # And we want to be able to parse escaped strings like 'cscript "path to file" /switch'
-
-        commandlist = csv.reader([commandstring], delimiter=" ").next()
+        # split command line by space except when quoted - preserve quotes
+        commandlist = re.findall(r'(?:[^\s"]|"(?:\\.|[^"])*")+', commandstring)
         is_js_script = False
         
-        if commandlist[0].lower() == "cscript" or commandlist[0][-3:].lower()==".js":
+        # remove possible quotes before checking whether it is a js script
+        jscommand = re.sub(r'^"|"$', '', commandlist[0]).lower()
+
+        if jscommand == "cscript" or jscommand[-3:]==".js":
            is_js_script = True
         if is_js_script == True:
             if commandlist[0].lower() != "cscript":
