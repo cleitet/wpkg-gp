@@ -70,9 +70,10 @@ class WpkgNetworkHandler(object):
             logger.info("Test-Host did not respond. Not connecting to the network share")
             return
 
+        sleep = self.config.get("ConnectionSleepBeforeRetry")
+        tries = self.config.get("ConnectionTries")
         i = 0
-        tries = 6
-        while self.connected != True and i <= tries:
+        while self.connected != True and i < tries:
             i = i+1
             try:
                 logger.debug("Trying to connect to share. %s of %s" % (i, tries))
@@ -97,7 +98,7 @@ class WpkgNetworkHandler(object):
                 elif n == winerror.ERROR_BAD_NETPATH or n == winerror.ERROR_NETWORK_UNREACHABLE: # 53_ Network path not found | 1231Network location cannot be reached
                     # This can indicate that the network path was wrong, or that the network is not available yet
                     logger.info("An issue occured when connecting to '%s', the error code is %i and the error string is '%s'" % (self.network_share, n, e))
-                    time.sleep(5) # Sleep 5 seconds
+                    time.sleep(sleep)
                 else:
                     raise
 

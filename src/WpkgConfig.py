@@ -45,7 +45,9 @@ class WpkgConfig(object):
             WpkgSetting(self, "DisableAtBootUp", 0, "int"),
             WpkgSetting(self, "TestConnectHost", None, "string"),
             WpkgSetting(self, "TestConnectPort", 445, "string"),
-            WpkgSetting(self, "TestConnectTries", 5, "int")
+            WpkgSetting(self, "TestConnectTries", 5, "int"),
+            WpkgSetting(self, "ConnectionTries", 7, "int"),
+            WpkgSetting(self, "ConnectionSleepBeforeRetry", 5, "int")
             ]
     def get(self, name):
         for i in self.settings:
