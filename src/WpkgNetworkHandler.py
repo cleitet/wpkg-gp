@@ -2,6 +2,7 @@ import logging
 import WpkgConfig
 import re
 import win32wnet, win32netcon, winerror
+import socket
 import time
 
 class NullHandler(logging.Handler):
@@ -31,6 +32,24 @@ class WpkgNetworkHandler(object):
             logger.info("The command %s did not contain a share name" % command_string)
             self.network_share = None
             
+    def test_host_connect(self):
+        host = self.config.get("TestConnectHost")
+        port = self.config.get("TestConnectPort")
+        tries = self.config.get("TestConnectTries")
+        timeout = 2
+
+        for i in range(tries):
+            try:
+                logger.debug("Testing connection with host '%s' port '%s' (%i/%i)" % (host,port,i+1,tries))
+                tcptest = socket.create_connection((host,port),timeout)
+                logger.debug("Testing connection: successful")
+                tcptest.shutdown(socket.SHUT_RDWR)
+                tcptest.close()
+                return True
+            except socket.error as msg:
+                logger.debug("Testing connection failed: %s" % (msg))
+        return False
+
     def connect_to_network_share(self):
         if self.connected == True:
             logger.debug("Is already connected to the network")
@@ -46,6 +65,10 @@ class WpkgNetworkHandler(object):
             return
         # cleaning up any stale connections
         self.disconnect_from_network_share()
+
+        if self.config.get("TestConnectHost") != None and not self.test_host_connect():
+            logger.info("Test-Host did not respond. Not connecting to the network share")
+            return
 
         i = 0
         tries = 6

@@ -42,7 +42,10 @@ class WpkgConfig(object):
             WpkgSetting(self, "WpkgExecuteByNonAdmins", 0, "int"),
             WpkgSetting(self, "WpkgExecuteByLocalUsers", 1, "int"),
             WpkgSetting(self, "WpkgActivityIndicator", 1, "int"),
-            WpkgSetting(self, "DisableAtBootUp", 0, "int")
+            WpkgSetting(self, "DisableAtBootUp", 0, "int"),
+            WpkgSetting(self, "TestConnectHost", None, "string"),
+            WpkgSetting(self, "TestConnectPort", 445, "string"),
+            WpkgSetting(self, "TestConnectTries", 5, "int")
             ]
     def get(self, name):
         for i in self.settings:
