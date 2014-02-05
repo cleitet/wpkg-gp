@@ -5,7 +5,7 @@ IF "%PROCESSOR_ARCHITECTURE%"=="x86" (
   SET PYTHON32="c:\python26\python.exe"
 ) ELSE (
   SET NSIS="%ProgramFiles(x86)%\NSIS\makensis.exe"
-  SET PYTHON32="c:\python27\python.exe"
+  SET PYTHON32="c:\python27 (x86)\python.exe"
   SET PYTHON64="c:\python27 (x64)\python.exe"
 )
 
