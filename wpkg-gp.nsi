@@ -614,4 +614,9 @@ section "uninstall"
   DeleteRegKey HKLM "${GPE_REG_KEY}"
   DeleteRegKey HKLM "System\CurrentControlSet\Services\EventLog\Application\WPKG-gp-GPE"
   
+  DetailPrint "Reverting verbose bootup settings"
+  DeleteRegValue HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" "verbosestatus"
+  DeleteRegValue HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" "DisableStatusMessages"
+  DeleteRegValue HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" "SyncForegroundPolicy"
+
 sectionEnd
