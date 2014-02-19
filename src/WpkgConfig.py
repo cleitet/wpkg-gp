@@ -4,6 +4,7 @@ import os.path
 import base64
 import logging
 import win32crypt, pywintypes
+import re
 
 class NullHandler(logging.Handler):
     def emit(self, record):
@@ -124,6 +125,7 @@ class WpkgPasswordSetting(WpkgSetting):
                 return policy_value
         ini_value = self.get_from_ini(log=False)
         if ini_value != None:
+            ini_value = re.sub(r'^"|"$', '', ini_value)   # remove possible quotes
             logger.debug("Reading %s from ini file" % self.name)
             self.passwordtype = ini_value.split(":")[0]
             value = ":".join(ini_value.split(":")[1:])
