@@ -21,7 +21,7 @@ import sys, os
 import WpkgConfig
 import _winreg
 import logging
-
+import re
 
 
 WPKGGPGUID = '{A9B8D792-F454-11DE-BA92-FDCF56D89593}'
@@ -75,6 +75,10 @@ class WpkgLocalGPConfigurator:
         except ConfigParser.NoOptionError:
             extensions = ""
         extensions = "%s[%s%s]" % (extensions, WPKGGPGUID, MMCEXTENSIONW51)
+        # sort extensions in ascending order as gp requires
+        # https://code.google.com/p/wpkg-gp/issues/detail?id=92
+        extensionList = re.findall(r'(\[[^]]*\])', extensions)
+        extensions = "".join(sorted(extensionList))
         self.config.set('General', 'gPCMACHINEExtensionNames', extensions)
         with open(self._inifile, 'w') as configfile:
             self.config.write(configfile)
