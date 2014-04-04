@@ -7,7 +7,8 @@ class WpkgOutputParser(object):
     def reset(self):
         self.operation = "Initializing Wpkg-GP"
         self.package_name = ""
-        self.percent = 0
+        self.pkgnum = 0
+        self.pkgtot = 0
         self.updated = True
         self.started = False
         
@@ -19,7 +20,7 @@ class WpkgOutputParser(object):
         
         previous_operation = self.operation
         previous_package_name = self.package_name
-        previous_percent = self.percent
+        previous_pkgnum = self.pkgnum
         
         #Remove "STATUS"-part:
         line = ":".join(line_to_parse.split(":")[3:])[1:]
@@ -28,16 +29,14 @@ class WpkgOutputParser(object):
         if re.match("^Remove: Checking status", line):
             #No action is being performed, only updating internal percentage counter, but do not generate output
             self.operation = "removing"
-            self.package_name, pkgnum, pkgtot = re.search("('.*') \(([0-9]+)/([0-9]+)\)$", line).group(1, 2, 3)
-            self.get_percent(pkgnum, pkgtot)
+            self.package_name, self.pkgnum, self.pkgtot = re.search("('.*') \(([0-9]+)/([0-9]+)\)$", line).group(1, 2, 3)
         elif re.match("^Remove: Removing package", line):
             self.operation = "removing"
             self.package_name = re.search("('.*')", line).group(1)
         elif re.match("^Install:", line):
             #No action is being performed, only updating internal percentage counter, but do not generate output
             self.operation = "verifying"
-            self.package_name, pkgnum, pkgtot = re.search("('.*') \(([0-9]+)/([0-9]+)\)$", line).group(1, 2, 3)
-            self.get_percent(pkgnum, pkgtot)
+            self.package_name, self.pkgnum, self.pkgtot = re.search("('.*') \(([0-9]+)/([0-9]+)\)$", line).group(1, 2, 3)
         elif re.match("^Performing operation", line):
             #Operation is actually being performed
             operation, self.package_name = re.search(
@@ -47,23 +46,14 @@ class WpkgOutputParser(object):
                 self.operation = "upgrading"
             elif operation == "install":
                 self.operation = "installing"
-        if self.percent == previous_percent and self.package_name == previous_package_name and self.operation == previous_operation:
+        if self.pkgnum == previous_pkgnum and self.package_name == previous_package_name and self.operation == previous_operation:
             self.updated = False
         else:
             self.updated = True
 
-    def get_percent(self, pkgnum, pkgtot):
-        #This is quasi-progress, as some packages might be quick, and some slow
-        percent = (int(pkgnum) * 100 / int(pkgtot))
-        #Let it stick at 99% for last pkg :)
-        if percent == 100:
-            self.percent = 99
-        else:
-            self.percent = percent
-            
     def get_formatted_line(self):
         if self.updated == True:
-            return "Wpkg-GP is %s %s %i%%" % (self.operation, self.package_name, self.percent)
+            return "Wpkg-GP is %s %s (%s/%s)" % (self.operation, self.package_name, self.pkgnum, self.pkgtot)
         else:
             return False
 
