@@ -454,8 +454,10 @@ Section "Wpkg-GP Client" Client
 SectionEnd
 
 Section "Wpkg-GP Administrative Template for Group Policies" ADM
-  SetOutPath $WINDIR\INF
-  File src\Wpkg-GP.adm
+  SetOutPath $WINDIR\PolicyDefinitions
+  File src\admx\wpkg-gp.admx
+  SetOutPath $WINDIR\PolicyDefinitions\en-us
+  File src\admx\en-us\wpkg-gp.adml
 SectionEnd
 
 Section "Wpkg-GP MSI tool" MSITool
@@ -601,7 +603,8 @@ section "uninstall"
   Delete $INSTDIR\Wpkg-GP_Old.INI
   Delete $INSTDIR\Wpkg-GP_Default.INI
   Delete $INSTDIR\install.log
-  Delete $WINDIR\INF\Wpkg-GP.adm
+  Delete $WINDIR\PolicyDefinitions\wpkg-gp.admx
+  Delete $WINDIR\PolicyDefinitions\en-us\wpkg-gp.adml
   RMDir /r $INSTDIR\Logs
   RMDir /r $INSTDIR\Microsoft.VC90.CRT
   RMDir /r $INSTDIR\New
