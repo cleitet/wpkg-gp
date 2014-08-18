@@ -23,7 +23,7 @@
 
 	<policies>
 		
-		<policy name="WPKG-GP_Enable" class="Machine" displayName="$(string.WPKG-GP_Enable)" explainText="$(string.WPKG-GP_EnableD)" presentation="$(presentation.WPKG-GP_EnableP)" key="SOFTWARE\Policies\WPKG_gp" >
+		<policy name="WPKG-GP_Enable" clientExtension="{A9B8D792-F454-11DE-BA92-FDCF56D89593}" class="Machine" displayName="$(string.WPKG-GP_Enable)" explainText="$(string.WPKG-GP_EnableD)" presentation="$(presentation.WPKG-GP_EnableP)" key="SOFTWARE\Policies\WPKG_gp" >
 			<parentCategory ref="WPKG-GP_Main" />
 			<supportedOn ref="windows:SUPPORTED_WindowsXP" />
 			<elements>
