@@ -27,6 +27,5 @@ class WpkgWriter():
             print string
 
 h = NullHandler()
-logger = logging.getLogger("WpkgWriter")
+logger = logging.getLogger("WpkgService")
 logger.addHandler(h)
-    
