@@ -49,9 +49,6 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
 
         self.config = WpkgConfig.WpkgConfig()
 
-        self.translator = WpkgTranslator.WpkgTranslator()
-        self.translator.install()
-        
         verbosity = self.config.get("WpkgVerbosity")
         install_path = self.config.install_path
         
@@ -79,6 +76,9 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
         self.logger.info("Logging started with verbosity: %i" % verbosity)
+
+        self.translator = WpkgTranslator.WpkgTranslator()
+        self.translator.install()
 
         # Enable/Disable LGP
         LGP_handler = WpkgLGPUpdater.WpkgLocalGPConfigurator()
