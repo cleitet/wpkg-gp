@@ -28,14 +28,14 @@ class WpkgOutputParser(object):
         #Checking current operation:
         if re.match("^Remove: Checking status", line):
             #No action is being performed, only updating internal percentage counter, but do not generate output
-            self.operation = "removing"
+            self.operation = _("removing")
             self.package_name, self.pkgnum, self.pkgtot = re.search("('.*') \(([0-9]+)/([0-9]+)\)$", line).group(1, 2, 3)
         elif re.match("^Remove: Removing package", line):
-            self.operation = "removing"
+            self.operation = _("removing")
             self.package_name = re.search("('.*')", line).group(1)
         elif re.match("^Install:", line):
             #No action is being performed, only updating internal percentage counter, but do not generate output
-            self.operation = "verifying"
+            self.operation = _("verifying")
             self.package_name, self.pkgnum, self.pkgtot = re.search("('.*') \(([0-9]+)/([0-9]+)\)$", line).group(1, 2, 3)
         elif re.match("^Performing operation", line):
             #Operation is actually being performed
@@ -43,9 +43,9 @@ class WpkgOutputParser(object):
                 "^Performing operation \((.+)\) on ('.+')", line).group(1,2)
             #The description of the operation is misleading on this message, except for upgrades
             if operation == "upgrade":
-                self.operation = "upgrading"
+                self.operation = _("upgrading")
             elif operation == "install":
-                self.operation = "installing"
+                self.operation = _("installing")
         if self.pkgnum == previous_pkgnum and self.package_name == previous_package_name and self.operation == previous_operation:
             self.updated = False
         else:
@@ -53,7 +53,8 @@ class WpkgOutputParser(object):
 
     def get_formatted_line(self):
         if self.updated == True:
-            return "Wpkg-GP is %s %s (%s/%s)" % (self.operation, self.package_name, self.pkgnum, self.pkgtot)
+            # Example: Wpkg-GP is installing Skype (1/25)
+            return _("Wpkg-GP is %s %s (%s/%s)") % (self.operation, self.package_name, self.pkgnum, self.pkgtot)
         else:
             return False
 
@@ -77,4 +78,6 @@ def main():
         
 
 if __name__=='__main__':
+    import gettext
+    gettext.install('wpkg-gp')
     main()

@@ -83,12 +83,12 @@ class WpkgExecuter():
         lines = []
         if self.is_running:
             logger.info(R"Client requested WPKG to execute, but WPKG is already running.")
-            msg = "201 WPKG is already running"
+            msg = "201 " + _("WPKG is already running")
             self.writer.Write(msg)
             return
 
         
-        parsedline = "Initializing Wpkg-GP software installation"
+        parsedline = _("Initializing Wpkg-GP software installation")
         self.writer.Write("100 " + parsedline)
         logger.info(R"Executing WPKG with the command %s" % self.execute_command)
         
@@ -152,7 +152,7 @@ class WpkgExecuter():
             
         if exitcode == 1: #Cscript returned an error
             logger.error(R"WPKG command returned an error: %s" % lines[-1:])
-            self.writer.Write("200 Wpkg returned an error: %s" % lines[-1][0:-1])
+            self.writer.Write("200 " + _("Wpkg returned an error: %s") % lines[-1][0:-1])
             return
         
         if exitcode == 770560: #WPKG returns this when it requests a reboot
@@ -166,10 +166,10 @@ class WpkgExecuter():
         if self.isrunning:
             self.proc.kill()
             logger.info("Cancel called, WPKG process was killed.")
-            msg = "101 Cancel called, WPKG process was killed"
+            msg = "101 " + _("Cancel called, WPKG process was killed")
         else:
             logger.info("Cancel called, but WPKG process was not running")
-            msg = "202 Cancel called, WPKG process was not running"
+            msg = "202 " + _("Cancel called, WPKG process was not running")
         try:
             self.writer.Write(handle, msg)
         except TypeError: #Maybe pipe is closed now
@@ -191,7 +191,8 @@ class WpkgExecuter():
             return "    ..."
 
 if __name__=='__main__':
-    import sys
+    import sys, gettext
+    gettext.install('wpkg-gp')
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")                        
     h = logging.StreamHandler(sys.stdout)
     h.setFormatter(formatter)

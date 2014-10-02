@@ -16,9 +16,11 @@ import thread
 import servicemanager
 import WpkgExecuter
 import WpkgLGPUpdater
+import WpkgTranslator
 import WpkgConfig
 import _winreg, logging, logging.handlers
 import os.path, sys
+import gettext
 
 MY_PIPE_NAME = r"\\.\pipe\WPKG"
 # From http://msdn.microsoft.com/en-us/library/aa379649%28VS.85%29.aspx
@@ -46,6 +48,9 @@ class WPKGControlService(win32serviceutil.ServiceFramework):
         self.thread_handles = []
 
         self.config = WpkgConfig.WpkgConfig()
+
+        self.translator = WpkgTranslator.WpkgTranslator()
+        self.translator.install()
         
         verbosity = self.config.get("WpkgVerbosity")
         install_path = self.config.install_path

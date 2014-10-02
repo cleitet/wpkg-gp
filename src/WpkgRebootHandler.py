@@ -36,18 +36,18 @@ class WpkgRebootHandler(object):
             self.status = STATUS_ERROR
             logger.info("Current number of reboots is %i, and maximum number of reboots is %i. Will not reboot" % (self.reboot_number, self.maximum_number_of_reboots))
             self.reset_reboot_number()
-            return "Wpkg-GP requested a reboot, but we have rebooted too many times in a row. Continuing."
+            return _("Wpkg-GP requested a reboot, but we have rebooted too many times in a row. Continuing.")
         elif self.reboot_policy == "force":
             logger.info("Rebooting now.")
             # This will only work from service, as main thread will exit before the thread has finished when
             # running the main() loop from the module, thus killing it.
             thread.start_new_thread(reboot.RebootServer, ("Wpkg-GP software installation requested a reboot.", 0, 1))
             self.status = STATUS_REBOOTING
-            return "102 Installation requested a reboot. Rebooting now."
+            return "102 " + _("Installation requested a reboot. Rebooting now.")
         elif self.reboot_policy == "ignore":
             logger.info("Reboot policy is set to 'ignore'. Reboot is pending")
             self.status = STATUS_PENDING
-            return "103 Installation requires a reboot, but policy set to ignore reboots. Continuing."
+            return "103 " + _("Installation requires a reboot, but policy set to ignore reboots. Continuing.")
 
     def cancel(self):
         reboot.AbortReboot()
@@ -75,7 +75,8 @@ class WpkgRebootHandler(object):
             _winreg.SetValueEx(key, "RebootNumber", 0, _winreg.REG_DWORD, self.reboot_number)
 
 if __name__ == '__main__':
-    import sys
+    import sys, gettext
+    gettext.install('wpkg-gp')
     logger = logging.getLogger("WpkgRebootHandler")
     handler = logger.addHandler(logging.StreamHandler(sys.stdout))
     logger.setLevel(logging.DEBUG)
@@ -83,7 +84,5 @@ if __name__ == '__main__':
     reboothandler.reboot()
 else:
     h = NullHandler()
-    logger = logging.getLogger("WpkgRebootHandler")
+    logger = logging.getLogger("WpkgService")
     logger.addHandler(h)
-    
-    
