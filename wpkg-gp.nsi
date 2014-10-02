@@ -318,6 +318,11 @@ Section "Wpkg-GP Client" Client
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED src\gpe\${PLATFORM}\Release\WPKG-GP-Test.exe $INSTDIR\Wpkg-GP-Test.exe $INSTDIR
   LogSet on
 
+  # Install locale files
+  CreateDirectory $INSTDIR\locale
+  SetOutPath $INSTDIR\locale
+  File locale\wpkg-gp.pot
+
   CreateDirectory $INSTDIR\Microsoft.VC90.CRT
   SetOutPath $INSTDIR\Microsoft.VC90.CRT
   File redist\VC90\Microsoft.VC90.CRT-${PLATFORM}\*.*
@@ -610,6 +615,7 @@ section "uninstall"
   RMDir /r $INSTDIR\New
   RMDir /r $INSTDIR\MSI
   RMDir /r $INSTDIR\VC++2010Redist
+  RMDir /r $INSTDIR\locale
   RMDir $INSTDIR
 
   DeleteRegKey HKLM ${PRODUCT_UNINST_KEY}
