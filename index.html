@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Wpkg-gp by cleitet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Wpkg-gp</h1>
+      <h2 class="project-tagline">Running WPKG as a Group Policy Extension</h2>
+      <a href="https://github.com/cleitet/wpkg-gp" class="btn">View on GitHub</a>
+      <a href="https://github.com/cleitet/wpkg-gp/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/cleitet/wpkg-gp/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <p>Many want to run <a href="http://wpkg.org">WPKG</a> at boot up, before user logon, and want their users to get some status information. This has traditionally been done either by running WPKG as a <a href="http://wpkg.org/WPKG_with_Active_Directory">Group Policy Script</a>, or by running the WPKG project's <a href="http://wpkg.org/WPKG_Client">WPKG Client</a>. The first has several limitations, the second <a href="http://wpkg.org/Screenshots#Windows_Vista">does not support delayed logon on Windows &gt;= Vista</a> due to <a href="http://www.microsoft.com/whdc/system/sysinternals/Session0Changes.mspx">new security features in Windows</a>.</p>
+
+<h3>
+<a id="how-does-it-work" class="anchor" href="#how-does-it-work" aria-hidden="true"><span class="octicon octicon-link"></span></a>How does it work?</h3>
+
+<p>Wpkg-GP circumvents this by hooking into the Group Policy Extensions (GPE) interface available in Windows (the one saying "Applying Group Policies" at boot up), and executing wpkg.js, providing some feedback to the user via the interfaces made available by GPE. The BehindTheScenes wiki page explains this deeper.</p>
+
+<h3>
+<a id="great-how-do-i-use-it" class="anchor" href="#great-how-do-i-use-it" aria-hidden="true"><span class="octicon octicon-link"></span></a>Great! How do I use it?</h3>
+
+<p>Visit the <a href="https://drive.google.com/folderview?id=0B9Eadi-crzpOVEtTM01aYm5YNm8&amp;usp=sharing">downloads</a> page to grab the installer the source page to check out the source code. Be sure to read the <a href="??">Installation Guide</a> as well. If you have any questions, feel free to send a mail to the <a href="mailto:wpkg-gp@googlegroups.com">discussion group</a> or visit the <a href="http://groups.google.com/group/wpkg-gp">archives</a>.</p>
+
+<h1>
+<a id="news" class="anchor" href="#news" aria-hidden="true"><span class="octicon octicon-link"></span></a>News</h1>
+
+<hr>
+
+<h2>
+<a id="2014-05-13" class="anchor" href="#2014-05-13" aria-hidden="true"><span class="octicon octicon-link"></span></a>2014-05-13</h2>
+
+<p>Another bug fix release, wpkg-gp 0.17 is available. </p>
+
+<p>No changes of setup from beta version 0.17b1 except that the internal version number is increased to 0.17.</p>
+
+<p>Changes in detail:</p>
+
+<ul>
+<li>Fixed a regression so that clear passwords can now be put in quotes again (r286, issue #105)</li>
+<li>Replaced the percent indicator with package number processed of total number of packages (r288, issue #96)</li>
+<li>Fixed invalid gpt.ini manipulation which could cause wpkg-gp or other extensions not to run (r287, issue #92)</li>
+<li>Replaced the adm group policy files with newer admx files (Thanks to michal.sacharewicz) (r290, issue #107)</li>
+</ul>
+
+<h2>
+<a id="2014-02-18" class="anchor" href="#2014-02-18" aria-hidden="true"><span class="octicon octicon-link"></span></a>2014-02-18</h2>
+
+<p>After a long time of silence there is a new release available for
+ WPKG-GP version 0.16</p>
+
+<p>This is a bug fix release with following changes:</p>
+
+<ul>
+<li>It is now possible to use wpkg commands with spaces (r281, issue #82) Remember to use quotes if you want to do so.</li>
+<li>Group policy settings are now reverted when uninstalling wpkg-gp (r282, issue #79)</li>
+<li>Optimized speed when connecting to network share fails (r280, issue #83)</li>
+<li>Made number of retries and sleeping time between trying to connect to network share configurable (r275, issue #83)</li>
+<li>Added optional tcp connection test to reduce waiting time (r274, r276, issue #83)</li>
+</ul>
+
+<h2>
+<a id="2011-08-15---release-015" class="anchor" href="#2011-08-15---release-015" aria-hidden="true"><span class="octicon octicon-link"></span></a>2011-08-15 - Release 0.15</h2>
+
+<p>This version has major number of bug fixes and enhancements</p>
+
+<ul>
+<li>New features
+
+<ul>
+<li>Much less verbose in logs. Now it only logs issues in event log, and uses WPKG.js itself (with /quiet switch) for posting informational messages in event log. (r230, issue #57)</li>
+<li>You can now choose which features to install in silent mode with the switch /Features Client|Adm|MSITool, for more information run the installer with the /? switch. (r236, issue #54)</li>
+<li>Improved speed (r256, issue #74)</li>
+</ul>
+</li>
+<li>Fixes
+
+<ul>
+<li>Issues with User Local Group Policies running in parallel with Wpkg-GP Computer Local Group Policies (r231, r250, r254, issue #56, issue #65)</li>
+<li>Is now using account service is running as to connect to network if no user name is provided (r232, issue #58)</li>
+<li>Progress indicator is now containing white spaces to make the boot screen flicker less. (r233, issue #57)</li>
+<li>You now have to install Wpkg-GP if you want to install the MSI tool as they share libraries. (r234)</li>
+<li>Will not install MPR.dll which caused issues on 32-bit Vista (r235)</li>
+<li>Fixed a string formatting typo that caused issues when errors occurred. (r239, issue #42)</li>
+<li>Reboot messages missed a status code, and appeared with the first four characters missing. (r242)</li>
+<li>Fixed error when installer was called with /!WpkgCommand (r243, issue #65)</li>
+<li>Fixed issue with encrypted password and characters either misinterpreted by ini parser library or somewhere else by adding a hash (#) at end of all encrypted passwords, making the ini parser library qoute them. (r244, issue #66)</li>
+<li>Fixed buffer overflow issue causing random crashes in wpkg-gp.dll and wpkg-gp-test.exe. (r247, issue #63)</li>
+<li>Fixed major issues with !MakeMSI tool (r248, issue #64)</li>
+<li>Fixed server crashing when Event Log is full (r252, issue #67)</li>
+<li>Fixed server crashing if Group Policy Directory is not found (r253, issue #68)</li>
+<li>Is now not logging password in clear text (r255, issue #70)</li>
+</ul>
+</li>
+</ul>
+
+<h2>
+<a id="2011-08-05---release-014" class="anchor" href="#2011-08-05---release-014" aria-hidden="true"><span class="octicon octicon-link"></span></a>2011-08-05 - Release 0.14</h2>
+
+<p>This release is mainly fixing a critical bug introduced in 0.13, which made it impossible to connect to the network with the provided credentials</p>
+
+<ul>
+<li>New features
+
+<ul>
+<li>New setting: DisableAtBootUp which disables execution at bootup
+
+<ul>
+<li>Technical details: The Wpkg-gp.dll GPE now sends ExecuteFromGPE instead of Execute. If this command is received, the service checks if DisableAtBootUp is set. Sending Execute to the service works as before. (r225)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Fixes
+
+<ul>
+<li>Connecting to network user was broken (issue #52, r222)</li>
+<li>Some of the output was missing when the activity indicator was showing (r218)</li>
+<li>In certain scenarios the last line was not retrieved correctly when Wpkg.js returned an error (r219, r221, r223)</li>
+<li>Reduced lookups in ini file (r220)</li>
+</ul>
+</li>
+</ul>
+
+<h2>
+<a id="2011-08-03---release-013" class="anchor" href="#2011-08-03---release-013" aria-hidden="true"><span class="octicon octicon-link"></span></a>2011-08-03 - Release 0.13</h2>
+
+<ul>
+<li>New features
+
+<ul>
+<li>EnableViaLGP is now on by default, to make it possible to run out of the box. New switch /DisableViaLGP disables it if you want to run the installer silent. (r213)</li>
+<li>Installer aborts if you do not provide a path to WpkgCommand and are using Local Group Policies (default). (r214)</li>
+<li>Support for environment variables in Wpkg-GP.ini under the [EnvironmentVariables] section r199</li>
+<li>Now we have an "activity indicator" (moving dots) to indicate that the process has not hung while installing packages. (r210, issue #51)</li>
+<li>Modularized Wpkg-GP.adm Administrative template to be easier to configure and making it possible to only configure parts of it. This is handy if you want to configure WpkgCommand via Group Policies, but username/password via INI. (r212)</li>
+</ul>
+</li>
+<li>Fixes:
+
+<ul>
+<li>Workarounds for scenarios where execution of Wpkg-GP started before the network was fully operable (r198).</li>
+<li>Issues with logrotation (r200).</li>
+<li>Explained how to escape # characters in Wpkg-GP.ini (r201, issue #47)</li>
+<li>Issues with the security features from 0.12 (r204, r204, issue #46)</li>
+<li>Issue with ini files provided at setup not named wpkg-gp.ini (r207 issue #50)</li>
+<li>Issue with looking up account information on system with other languages
+than English, as account names was hardcoded. Is now using well known
+SID's instead. (r208, issue #49)</li>
+<li>Issue when using relative paths to provide /INI file to installer. (r211)</li>
+</ul>
+</li>
+</ul>
+
+<h2>
+<a id="2011-07-19---release-012" class="anchor" href="#2011-07-19---release-012" aria-hidden="true"><span class="octicon octicon-link"></span></a>2011-07-19 - Release 0.12</h2>
+
+<ul>
+<li>New features
+
+<ul>
+<li>Security feature added to limit which users have access to execute Wpkg. See [<a href="http://code.google.com/p/wpkg-gp/source/browse/trunk/Wpkg-GP.ini">http://code.google.com/p/wpkg-gp/source/browse/trunk/Wpkg-GP.ini</a> Wpkg-GP.ini] for explanation.
+
+<ul>
+<li>Group Policy administrative template is updated with settings for this feature as well.</li>
+</ul>
+</li>
+<li>Added a tool to generate a MSI installer from a installer and INI file (r187, r188) See the correct section of the [<a href="http://code.google.com/p/wpkg-gp/wiki/InstallationGuide?ts=1311066459&amp;updated=InstallationGuide#Install_via_AD">http://code.google.com/p/wpkg-gp/wiki/InstallationGuide?ts=1311066459&amp;updated=InstallationGuide#Install_via_AD</a> Installation guide]</li>
+<li>Updated to python 2.7</li>
+</ul>
+</li>
+<li>Fixes
+
+<ul>
+<li>Some logging issues fixed (r183, r189)</li>
+<li>Reintroduced wpkg-gp-test.exe
+##2011-06-24 - Release 0.11</li>
+</ul>
+</li>
+<li>New features
+
+<ul>
+<li>The installer is switched from WIX to NSIS, which now makes it possible for Wpkg-GP to upgrade itself from itself for future versions. However this will not work with previous versions, so you need to run the Wpkg-GP 0.11 installer from outside Wpkg-GP. The new installer will automatically uninstall any previous versions as well.</li>
+<li>Switched from being configured by registry settings to an INI-file for easier distribution of the software to multiple computers. You can now provide a preconfigured INI file with the installer with your settings.</li>
+<li>Modularized the source code. This will not be too visible for the users, but will help the maintainers mantain the code better.</li>
+</ul>
+</li>
+<li>Bugfixes:
+
+<ul>
+<li>A small number of bugfixes ant typo fixes.</li>
+<li>Updated ADM file. If upgrading and using AD for configuration, be sure to upgrade this on your Domain Controllers and the Group Policy settings as well.
+##2011-03-15 - Release 0.10</li>
+</ul>
+</li>
+<li>Bugfixes
+
+<ul>
+<li>Made the "Waiting for service" message at boot a little bit more consise. (r124)</li>
+<li>Added dependency on LANMAN service, to make sure named pipes are working before starting service (r125)</li>
+</ul>
+</li>
+<li>New features
+
+<ul>
+<li>Preliminary support for computers that are not a part of an Active Directory domain (r129) by using Local Group Policies. This functionality has not been tested extensively, so use with caution. We have not tested it on Windows Vista/7 home edition, but we expect it to work there as well, as the LGP libraries are in place, even though the gpedit.msc is missing.</li>
+<li>Modified installer to make it easier to configure WPKG without using Group Policies (r131)</li>
+<li>Improved logging. WPKG-GP is now using log files rather than event log for verbose logs. This will make it easier to track down issues and bugs (r132, r133, r134, r135, r139, r140)</li>
+<li>It is now possible to build x86 on x86 platform. (x64 platform can build both x86 and x64) (r136)</li>
+<li>Parsing of Wpkg Execute string is improved. It now adds "cscript" to beginning of string, if it points to a file ending in ".js". It also adds /noReboot, /synchronize, /sendStatus and /nonotify automatically if the flags are missing. (r134, r138) This means you may give the path to wpkg.js with no prefix or arguments, and it will still work.</li>
+<li>The installer now configures Group Policies to be applied asynchronously when installing WPKG-GP. NOTE: This will be overridden by your Group Policies setting though, so make sure it is turned on in your Group Policies as well if in an Active Directory environment (r141).</li>
+</ul>
+</li>
+</ul>
+
+<p>All the configurable settings can be configured via the command line when installing WPKG-GP. Please see the <a href="??">Installation Guide</a> for more information.</p>
+
+<p>A client is being developed that will enable you to create a MST (transforms file) for the settings as well.</p>
+
+<h2>
+<a id="2011-01-10---release-09" class="anchor" href="#2011-01-10---release-09" aria-hidden="true"><span class="octicon octicon-link"></span></a>2011-01-10 - Release 0.9</h2>
+
+<ul>
+<li>Bugfixes
+
+<ul>
+<li>Issues with WPKG-GP on 64 bit where GPE did not work (revision #122)</li>
+<li>When waiting for service to start, you had to wait for two minutes (r118 issue 22)</li>
+</ul>
+</li>
+<li>New features
+
+<ul>
+<li>Native 64-bit support with the help of <a href="issue%20#19,%20r110">http://code.google.com/u/abadent/ abadent</a>
+</li>
+<li>Debug logging for GPE in place (r120)</li>
+</ul>
+</li>
+</ul>
+
+<h2>
+<a id="2011-01-05---release-08" class="anchor" href="#2011-01-05---release-08" aria-hidden="true"><span class="octicon octicon-link"></span></a>2011-01-05 - Release 0.8</h2>
+
+<ul>
+<li>Some important bugs fixed:
+
+<ul>
+<li>"wpkg-gp-test.exe -debug" now works on 64 bit</li>
+<li>Shell variable expansion now works for the path to wpkg.js, e.g. "%SOFTWAREINSTALL%"\wpkg.js</li>
+</ul>
+</li>
+<li>Some new killer features:
+
+<ul>
+<li>WPKG-GP now has built-in functionality to connect to the network as another user. This can be set at install time via the installation wizard. For more info, see the updated [InstallationGuide installation guide]. This means that you do not have to expose the password to your WPKG network user in the registry anymore. WPKG encrypts the password and saves it using a Windows function that only the user the service is running as can decrypt. For more info, see the [NetworkUser network user] wiki page.</li>
+</ul>
+</li>
+<li>A new administrative template which exposes the "Max Reboots" setting introduced in 0.7.</li>
+</ul>
+
+<p>What is pending before we have a stable platform?</p>
+
+<ul>
+<li>Native x64 support, not the dual x64/x32 with wow64 we have now.</li>
+<li>A "kill switch" (it actually exists already) feature for interrupting the WPKG execution, and the possibility to set a maximum execution time for WPKG.</li>
+<li>Anything else? Send a feature request to the mailing list, or create a new issue.</li>
+</ul>
+
+<h2>
+<a id="2010-12-30---release-07" class="anchor" href="#2010-12-30---release-07" aria-hidden="true"><span class="octicon octicon-link"></span></a>2010-12-30 - Release 0.7</h2>
+
+<ul>
+<li>Some bug fixes and new features, please test! Pretty please :)</li>
+<li>Randomly hanging at startup (executing before service have started) is fixed. Hopefully this resolves issue #15 and issue #16</li>
+<li>Reboots are now working</li>
+<li>Maximum number of consecutive reboots is implemented (standard value is 10), resolving issue #4</li>
+<li>Extensive logging is now possible
+
+<ul>
+<li>New switch to wpkg-gp-client.exe "-debug" gives verbose debug messages</li>
+<li>Three levels of verbosity possible for the service: 1-3</li>
+</ul>
+</li>
+</ul>
+
+<h2>
+<a id="2010-12-16---release-06" class="anchor" href="#2010-12-16---release-06" aria-hidden="true"><span class="octicon octicon-link"></span></a>2010-12-16 - Release 0.6</h2>
+
+<ul>
+<li>We have finally managed to have something new to release. This is a complete rewrite, featuring:</li>
+<li>Python as the primary language for functionality. This means more rapid development, easier to manage code and hopefully even more people will be able to participate.</li>
+<li>A split into a service reading settings from registry, executing wpkg, and parsing wpkg's output and a client connecting to the service via named pipes and instructing it to start wpkg.js and reading the parsed output. This gives us a lot of extensibility.</li>
+<li>As this is a complete rewrite, we need testers, so please test and report issues and wishes!</li>
+</ul>
+
+<h2>
+<a id="2010-07-30---release-05" class="anchor" href="#2010-07-30---release-05" aria-hidden="true"><span class="octicon octicon-link"></span></a>2010-07-30 - Release 0.5</h2>
+
+<ul>
+<li>Although there has been a while since the last news update, but the project has had a lot of updates</li>
+<li>Release 0.3 and 0.4 introduced x64 support</li>
+<li>Release 0.4 migrated the project to VC++ Express 2010 (native x64 support)</li>
+<li>Release 0.5 fixed an installer issue (trying to install VC++ 2010 Redist components even if only installing the Group Policy templates)</li>
+<li>We cannot guarantee the stability of 0.5 yet (testers needed especially for the x64 part)</li>
+</ul>
+
+<h2>
+<a id="2010-03-30---release-02" class="anchor" href="#2010-03-30---release-02" aria-hidden="true"><span class="octicon octicon-link"></span></a>2010-03-30 - Release 0.2!</h2>
+
+<ul>
+<li>This fixes [<a href="http://code.google.com/p/wpkg-gp/issues/detail?id=6">http://code.google.com/p/wpkg-gp/issues/detail?id=6</a> issue 6]</li>
+<li>Adm file updated with more documentation</li>
+<li>MSI file autoupdates itself (replaces previous version)</li>
+<li>InstallationGuide doc is updated with new screenshot of the adm file.</li>
+<li>Thanks to <a href="mailto:peter@s...org">peter@s...org</a> and <a href="mailto:google@d...de">google@d...de</a> for feedback and even a patch. That's our first!</li>
+</ul>
+
+<h2>
+<a id="2010-02-16---initial-release" class="anchor" href="#2010-02-16---initial-release" aria-hidden="true"><span class="octicon octicon-link"></span></a>2010-02-16 - Initial Release!</h2>
+
+<p>We are proud to present to you an initial release of both the source code and msi installation file for wpkg-gp. Stay tuned for some documentation that will arrive soon too!</p>
+
+<p>Please note that this is the <em>initial</em> release, so most likely you will run into some issues. Please notify us about these via the [<a href="http://code.google.com/p/wpkg-gp/issues/list">http://code.google.com/p/wpkg-gp/issues/list</a> Issue Tracking interface]</p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/cleitet/wpkg-gp">Wpkg-gp</a> is maintained by <a href="https://github.com/cleitet">cleitet</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
+
