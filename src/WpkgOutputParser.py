@@ -32,7 +32,7 @@ class WpkgOutputParser(object):
             self.package_name, self.pkgnum, self.pkgtot = re.search("('.*') \(([0-9]+)/([0-9]+)\)$", line).group(1, 2, 3)
         elif re.match("^Remove: Removing package", line):
             self.operation = _("removing")
-            self.package_name = re.search("('.*')", line).group(1)
+            self.package_name, self.pkgnum, self.pkgtot = re.search("('.*') \(([0-9]+)/([0-9]+)\)$", line).group(1, 2, 3)
         elif re.match("^Install:", line):
             #No action is being performed, only updating internal percentage counter, but do not generate output
             self.operation = _("verifying")
