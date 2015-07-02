@@ -61,10 +61,10 @@ class WpkgOutputParser(object):
 def main():
     example = """
 2011-05-07 10:41:30, STATUS  : Starting software synchronization
-2011-05-07 10:41:30, STATUS  : Number of packages to be removed: 1
-2011-05-07 10:41:30, STATUS  : Remove: Checking status of 'Removeme' (1/1)
+2011-05-07 10:41:30, STATUS  : Number of packages to be removed: 2
+2011-05-07 10:41:30, STATUS  : Remove: Checking status of 'Removeme' (1/2)
 2011-05-07 10:41:30, STATUS  : Performing operation (install) on 'Removeme' (removeme)
-2011-05-07 10:41:30, STATUS  : Remove: Removing package 'Removeme' (1/1)
+2011-05-07 10:41:30, STATUS  : Remove: Removing package 'Removeme' (1/2)
 2011-05-07 10:41:30, STATUS  : Install: Verifying package 'test' (1/2)
 2011-05-07 10:41:30, STATUS  : Performing operation (install) on 'test' (rebootnow)
 2011-05-07 10:41:30, STATUS  : Install: Verifying package 'donothing' (2/2)
